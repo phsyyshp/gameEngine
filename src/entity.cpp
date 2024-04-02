@@ -2,6 +2,7 @@
 void Entity::updatePosition(float deltaTime) {
   position.x += deltaTime * velocity.x;
   position.y += deltaTime * velocity.y;
+  setPosition(position.x, position.y);
 }
 void Entity::updateVelocity(float deltaTime) {
   velocity.x = 0.f;
