@@ -11,7 +11,7 @@ public:
   void clearAccumulators();
 
   void addForceAtPoint(const sf::Vector2f &force, const sf::Vector2f &point);
-
+  void addForceOnBody(const sf::Vector2f &force, const sf::Vector2f &point);
 private:
   float inverseMass;
   float orientation = 0;

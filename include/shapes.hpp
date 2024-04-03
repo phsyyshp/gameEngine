@@ -19,6 +19,7 @@ public:
       : sf::RectangleShape(sf::Vector2f(w, h)), Collidible(x, y), width(w),
         height(h) {
     setPosition(x, y);
+    setOrigin(w / 2, h / 2);
   }
 
 private:
