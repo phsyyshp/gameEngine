@@ -12,9 +12,9 @@ public:
 
   void addForceAtPoint(const sf::Vector2f &force, const sf::Vector2f &point);
   void addForceOnBody(const sf::Vector2f &force, const sf::Vector2f &point);
+
 private:
   float inverseMass;
-  float orientation = 0;
   float angularVelocity = 0;
   sf::Vector2f forceAccum = {0.f, 0.f};
   float torqueAccum = 0.f;
@@ -23,6 +23,7 @@ private:
   float inverseInertia;
 
 protected:
+  float orientation = 0;
   sf::Vector2f velocity = {0.f, 0.f};
   sf::Vector2f position;
 };

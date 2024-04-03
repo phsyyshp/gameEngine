@@ -20,6 +20,7 @@ public:
         height(h) {
     setPosition(x, y);
     setOrigin(w / 2, h / 2);
+    setRotation(orientation);
   }
 
 private:
