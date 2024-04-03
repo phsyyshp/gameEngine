@@ -1,3 +1,4 @@
+#pragma once
 #include "rigidBody2D.hpp"
 #include <SFML/Graphics.hpp>
 class ForceGenerator {

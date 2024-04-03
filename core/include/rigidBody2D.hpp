@@ -1,4 +1,6 @@
+#pragma once
 #include <SFML/Graphics.hpp>
+#include <iostream>
 class RigidBody2D {
 
 public:
@@ -7,6 +9,7 @@ public:
   void addForce(const sf::Vector2f &);
   // getters
   float getInverseMass() const;
+  void setInverseMass(float);
   void integrate(float deltaTime);
   void clearAccumulators();
 
@@ -19,15 +22,12 @@ private:
   sf::Vector2f forceAccum = {0.f, 0.f};
   float torqueAccum = 0.f;
   float angularDamping = 0.f;
+  float linearDamping = 0.f;
   sf::Vector2f lastFrameAcceleration;
-  float inverseInertia;
+  float inverseInertia = 1.f;
 
 protected:
   float orientation = 0;
   sf::Vector2f velocity = {0.f, 0.f};
   sf::Vector2f position;
 };
-// utills
-inline sf::Vector2f scale(const sf::Vector2f &v, float scale) {
-  return {v.x * scale, v.y * scale};
-}

@@ -3,9 +3,12 @@ project(GameEngine LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 set(MAIN_SOURCES
-core/src/main.cpp
+demos/main.cpp
 core/src/entity.cpp
-core/src/collidible.cpp)
+core/src/collidible.cpp
+core/src/rigidBody2D.cpp
+core/src/forceGeneration.cpp
+core/src/world.cpp)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 

@@ -28,8 +28,8 @@ void RigidBody2D::integrate(float deltaTime) {
   velocity += lastFrameAcceleration * deltaTime;
   angularVelocity += angularAcceleration * deltaTime;
 
-  velocity *= std::pow(angularDamping, deltaTime);
-  angularVelocity *= std::pow(angularDamping, deltaTime);
+  // velocity *= std::pow(linearDamping, deltaTime);
+  // angularVelocity *= std::pow(angularDamping, deltaTime);
 
   position += velocity * deltaTime;
   orientation += angularVelocity * deltaTime;
@@ -37,6 +37,9 @@ void RigidBody2D::integrate(float deltaTime) {
   clearAccumulators();
 }
 
+void RigidBody2D::setInverseMass(float inverseMass_) {
+  inverseMass = inverseMass_;
+}
 void RigidBody2D::clearAccumulators() {
   forceAccum = {0.f, 0.f};
   torqueAccum = 0.f;

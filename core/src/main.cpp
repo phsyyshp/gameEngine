@@ -18,6 +18,8 @@ int main() {
     shape.update(deltaTime);
 
     window.clear(sf::Color::Black);
+    // std::cout << shape.getPosition().x << " " << shape.getPosition().y
+    //           << std::endl;
     window.draw(shape);
     window.display();
   }

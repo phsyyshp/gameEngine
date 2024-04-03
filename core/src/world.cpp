@@ -11,3 +11,4 @@ void World::runPhysics(float deltaTime) {
     body.integrate(deltaTime);
   }
 }
+void World::registerBody(RigidBody2D &body) { bodies.push_back(body); }

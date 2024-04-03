@@ -23,6 +23,12 @@ public:
     setRotation(orientation);
   }
 
+  void update() {
+
+    setPosition(position.x, position.y);
+    setRotation(orientation);
+  };
+
 private:
   float width;
   float height;
