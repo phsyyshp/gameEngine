@@ -1,10 +1,5 @@
-#include <SFML/Graphics.hpp>
-class Collidible {
+#include "rigidBody2D.hpp"
+class Collidible : public RigidBody2D {
 public:
-  Collidible(float x, float y) : position(x, y) {}
-  // getters
-  sf::Vector2f getPosition() const;
-
-protected:
-  sf::Vector2f position;
+  Collidible(float x, float y) : RigidBody2D(x, y) {}
 };
