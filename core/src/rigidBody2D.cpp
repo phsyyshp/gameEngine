@@ -13,13 +13,10 @@ void RigidBody2D::addForceAtPoint(const sf::Vector2f &force,
 }
 void RigidBody2D::addForceOnBody(const sf::Vector2f &force,
                                  const sf::Vector2f &localPoint) {
-  sf::Vector2f worldPoint;
-  worldPoint.x = std::cos(orientation) * localPoint.x -
-                 std::sin(orientation) * localPoint.y + position.x;
-  worldPoint.y = std::sin(orientation) * localPoint.x +
-                 std::cos(orientation) * localPoint.y + position.y;
-  forceAccum += force;
-  torqueAccum += worldPoint.x * force.y - worldPoint.y * force.x;
+  sf::Vector2f worldPoint = localPoint + position;
+  addForceAtPoint(force, worldPoint);
+  // forceAccum += force;
+  // torqueAccum += localPoint.x * force.y - localPoint.y * force.x;
 }
 void RigidBody2D::integrate(float deltaTime) {
   lastFrameAcceleration = forceAccum * inverseMass;

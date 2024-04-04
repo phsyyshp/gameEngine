@@ -1,18 +1,15 @@
 #include <SFML/Graphics.hpp>
 struct Contact {
-  sf::Vector2f contactPosition;
+  Contact(RigidBody2D &a, RigidBody2D &b) : bodies{a, b} {}
+  sf::Vector2f contactPoint;
   sf::Vector2f contactNormal;
   float penetrationDepth;
+  std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
+  float friction;
+  float resitution;
 };
 class CollisionData {
 public:
-  std::array<Contact, 256> contacts;
-  void push_back(const Contact &contact) {
-    contacts[lastContactIdx] = contact;
-    lastContactIdx++;
-  }
-  size_t size() const { return lastContactIdx; }
-
-private:
-  size_t lastContactIdx = 0;
+  CollisionData() { contacts.reserve(256); }
+  std::vector<Contact> contacts;
 };
