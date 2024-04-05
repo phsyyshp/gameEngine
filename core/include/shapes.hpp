@@ -1,4 +1,5 @@
-#include "collidible.hpp"
+#pragma once
+#include "rigidBody2D.hpp"
 #include <SFML/Graphics.hpp>
 class Circle : public RigidBody2D, public sf::CircleShape {
 public:
@@ -8,6 +9,8 @@ public:
   }
   // getters
   float getRadius() const { return radius; }
+
+  void update() { setPosition(position.x, position.y); }
 
 private:
   float radius;

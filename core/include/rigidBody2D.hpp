@@ -9,12 +9,15 @@ public:
   void addForce(const sf::Vector2f &);
   // getters
   float getInverseMass() const;
+  float getInverseInertia() const;
   void setInverseMass(float);
   void integrate(float deltaTime);
   void clearAccumulators();
 
   void addForceAtPoint(const sf::Vector2f &force, const sf::Vector2f &point);
   void addForceOnBody(const sf::Vector2f &force, const sf::Vector2f &point);
+  sf::Vector2f getPosition() const;
+  sf::Vector2f getVelocity() const;
 
 private:
   float inverseMass;

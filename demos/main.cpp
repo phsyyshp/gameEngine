@@ -10,7 +10,7 @@ int main() {
                           sf::Style::Default);
   window.setFramerateLimit(60);
   float deltaTime = 0.01f;
-  float timeScale = 10;
+  float timeScale = 14;
   Box plane(150.f, 150.f, 15.f, 10.f);
   plane.setInverseMass(0.05f);
   plane.setFillColor(sf::Color(100, 250, 50));
