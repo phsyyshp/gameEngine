@@ -14,12 +14,16 @@ int main() {
   window.setFramerateLimit(60);
   float deltaTime = 0.01f;
   float timeScale = 1;
-  float lengthScale = 2000.f;
-  lengthScale = 5.f;
-  Circle mcirc(400, 300, 100);
+  float lengthScale = 8001.f;
+  //   lengthScale = 5.f;
+  Circle mcirc(400, 1500, 1001);
+  mcirc.setInverseMass(0.0);
+  //   mcirc2.setInverseMass(0.05);
+  //   mcirc.addVelocity({3000.f, 0.f});
+  //   mcirc2.addVelocity({-3000.f, 0.f});
   std::vector<Circle> circles;
-  mcirc.setInverseMass(0);
   circles.push_back(mcirc);
+  //   circles.push_back(mcirc2);
 
   CollisionData cd;
 
@@ -36,23 +40,23 @@ int main() {
       if (event.type == sf::Event::Closed) {
         window.close();
       }
-    }
-    for (auto &circle : circles) {
-      for (auto &other : circles) {
-        if (&circle == &other) {
-          continue;
+      if (event.type == sf::Event::MouseButtonPressed) {
+        if (event.mouseButton.button == sf::Mouse::Left) {
+          sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+          circles.push_back(Circle(mousePos.x, mousePos.y, 10));
+          (*(circles.end() - 1)).setInverseMass(0.05f);
         }
-        std::cout << Collider::sphereAndSphere(circle, other, cd) << "\n";
+      }
+    }
+    // std::cout << "Number of circles: " << circles.size() << "\n";
+    for (int i = 0; i < circles.size(); i++) {
+      for (int j = i + 1; j < circles.size(); j++) {
+        std::cout << Collider::sphereAndSphere(circles[i], circles[j], cd)
+                  << "\n";
       }
     }
     for (auto &contact : cd.contacts) {
-      contact.applyImpulse();
-    }
-    // create a circle at the point  where mouse clicked
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) {
-      sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-      circles.push_back(Circle(mousePos.x, mousePos.y, 100));
-      (*(circles.end() - 1)).setInverseMass(0.05f);
+      contact.applyVelocityChange();
     }
 
     // world.startFrame();
@@ -75,6 +79,7 @@ int main() {
       circle.update();
     }
     window.display();
+    cd.clear();
   }
   return 0;
 }
