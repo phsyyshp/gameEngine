@@ -24,7 +24,7 @@ public:
 
 private:
   float inverseMass;
-  float angularVelocity = 0;
+  float angularVelocity = 0.f;
   sf::Vector2f forceAccum = {0.f, 0.f};
   float torqueAccum = 0.f;
   float angularDamping = 0.f;

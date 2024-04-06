@@ -15,15 +15,18 @@ int main() {
   float deltaTime = 0.01f;
   float timeScale = 1;
   float lengthScale = 8001.f;
-  //   lengthScale = 5.f;
-  Circle mcirc(400, 1500, 1001);
-  mcirc.setInverseMass(0.0);
-  //   mcirc2.setInverseMass(0.05);
-  //   mcirc.addVelocity({3000.f, 0.f});
-  //   mcirc2.addVelocity({-3000.f, 0.f});
+  //   lengthScale = 0.f;
+  //   Circle mcirc(400, 1500, 1001);
+  Circle mcirc(100, 300, 100);
+  Circle mcirc2(500, 300, 100);
+
+  mcirc.setInverseMass(0.05);
+  mcirc2.setInverseMass(0.05);
+  mcirc.addVelocity({3000.f, 0.f});
+  mcirc2.addVelocity({-3000.f, 0.f});
   std::vector<Circle> circles;
   circles.push_back(mcirc);
-  //   circles.push_back(mcirc2);
+  circles.push_back(mcirc2);
 
   CollisionData cd;
 

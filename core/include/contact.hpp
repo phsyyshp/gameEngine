@@ -39,6 +39,6 @@ private:
   float penetrationDepth;
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
-  float resitution = 0.5f;
+  float resitution = 1.f;
   float desiredDeltaVelocity;
 };
