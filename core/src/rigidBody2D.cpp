@@ -6,9 +6,14 @@ float RigidBody2D::getInverseMass() const { return inverseMass; }
 float RigidBody2D::getInverseInertia() const { return inverseInertia; }
 sf::Vector2f RigidBody2D::getPosition() const { return position; }
 sf::Vector2f RigidBody2D::getVelocity() const { return velocity; }
-
+float RigidBody2D::getAngularVelocity() const { return angularVelocity; }
 void RigidBody2D::addForce(const sf::Vector2f &force) { forceAccum += force; }
-
+void RigidBody2D::addVelocity(const sf::Vector2f &velocity) {
+  this->velocity += velocity;
+}
+void RigidBody2D::addAngularVelocity(float rotation) {
+  angularVelocity += rotation;
+}
 void RigidBody2D::addForceAtPoint(const sf::Vector2f &force,
                                   const sf::Vector2f &point) {
   forceAccum += force;
