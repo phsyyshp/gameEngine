@@ -10,9 +10,9 @@ class Contact {
 public:
   Contact(RigidBody2D &a = emptyBody, RigidBody2D &b = emptyBody)
       : bodies{a, b} {}
-  sf::Vector2f calculateFrictionlessImpulse() const;
+  sf::Vector2f calculateFrictionlessImpulse();
 
-  void applyImpulse();
+  void applyImpulse(float);
   // getters declare:
   sf::Vector2f getContactPoint() const;
   sf::Vector2f getContactNormal() const;
@@ -28,6 +28,10 @@ public:
   void setFriction(float);
   void setResitution(float);
   void setDesiredDeltaVelocity(float);
+  sf::Vector2f connectToWorld(const sf::Vector2f &connect) const;
+
+  void applyVelocityChange();
+  void calculateDesiredVelocty();
 
 private:
   sf::Vector2f contactPoint;
@@ -35,6 +39,6 @@ private:
   float penetrationDepth;
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
-  float resitution;
+  float resitution = 0.5f;
   float desiredDeltaVelocity;
 };
