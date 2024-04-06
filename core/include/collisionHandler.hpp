@@ -5,6 +5,7 @@ class CollisionData {
 public:
   CollisionData() { contacts.reserve(256); }
   std::vector<Contact> contacts;
+  void clear() { contacts.clear(); }
 };
 class Collider {
 public:
