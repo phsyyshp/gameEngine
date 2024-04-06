@@ -6,6 +6,7 @@ public:
   Circle(float x, float y, float r)
       : sf::CircleShape(r), RigidBody2D(x, y), radius(r) {
     setPosition(x, y);
+    setOrigin(r, r);
   }
   // getters
   float getRadius() const { return radius; }
