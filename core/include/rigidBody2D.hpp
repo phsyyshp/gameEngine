@@ -16,8 +16,11 @@ public:
 
   void addForceAtPoint(const sf::Vector2f &force, const sf::Vector2f &point);
   void addForceOnBody(const sf::Vector2f &force, const sf::Vector2f &point);
+  void addVelocity(const sf::Vector2f &velocity);
+  void addAngularVelocity(float rotation);
   sf::Vector2f getPosition() const;
   sf::Vector2f getVelocity() const;
+  float getAngularVelocity() const;
 
 private:
   float inverseMass;
