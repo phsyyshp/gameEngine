@@ -3,6 +3,7 @@
 #pragma once
 #include "rigidBody2D.hpp"
 #include "utils.hpp"
+#include <SFML/System/Vector2.hpp>
 
 class Contact {
   static RigidBody2D emptyBody;
@@ -20,15 +21,12 @@ public:
   std::array<std::reference_wrapper<RigidBody2D>, 2> getBodies() const;
   float getFriction() const;
   float getResitution() const;
-  float getDesiredDeltaVelocity() const;
   // setters declare:
   void setContactPoint(const sf::Vector2f &);
   void setContactNormal(const sf::Vector2f &);
   void setPenetrationDepth(float);
   void setFriction(float);
   void setResitution(float);
-  void setDesiredDeltaVelocity(float);
-  sf::Vector2f connectToWorld(const sf::Vector2f &connect) const;
 
   void applyVelocityChange();
   void calculateDesiredVelocty();
@@ -39,6 +37,5 @@ private:
   float penetrationDepth;
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
-  float resitution = 1.f;
-  float desiredDeltaVelocity;
+  float resitution = 0.0f;
 };

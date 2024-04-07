@@ -20,6 +20,11 @@ void RigidBody2D::addForceAtPoint(const sf::Vector2f &force,
   torqueAccum +=
       (point.x - position.x) * force.y - (point.y - position.y) * force.x;
 }
+float RigidBody2D::getOrientation() const { return orientation; }
+void RigidBody2D::addDisplacement(const sf::Vector2f &addDisplacement) {
+  position += addDisplacement;
+}
+
 void RigidBody2D::addForceOnBody(const sf::Vector2f &force,
                                  const sf::Vector2f &localPoint) {
   sf::Vector2f worldPoint = localPoint + position;
@@ -43,10 +48,13 @@ void RigidBody2D::integrate(float deltaTime) {
   clearAccumulators();
 }
 
+void RigidBody2D::setInverseInertia(float inverseInertia_) {
+  inverseInertia = inverseInertia_;
+}
 void RigidBody2D::setInverseMass(float inverseMass_) {
   inverseMass = inverseMass_;
 }
 void RigidBody2D::clearAccumulators() {
-  forceAccum = {0.f, 0.f};
-  torqueAccum = 0.f;
+  forceAccum = {0.F, 0.F};
+  torqueAccum = 0.F;
 }
