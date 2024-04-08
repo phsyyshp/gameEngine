@@ -1,3 +1,4 @@
+#pragma once
 #include "contact.hpp"
 #include "shapes.hpp"
 #include <cmath>
@@ -6,6 +7,7 @@ public:
   CollisionData() { contacts.reserve(256); }
   std::vector<Contact> contacts;
   void clear() { contacts.clear(); }
+  [[nodiscard]] size_t size() const { return contacts.size(); }
 };
 class Collider {
 public:

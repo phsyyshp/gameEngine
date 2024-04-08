@@ -5,7 +5,7 @@ RigidBody2D Contact::emptyBody(-80, 80);
 sf::Vector2f Contact::getContactPoint() const { return contactPoint; }
 sf::Vector2f Contact::getContactNormal() const { return contactNormal; }
 float Contact::getPenetrationDepth() const { return penetrationDepth; }
-std::array<std::reference_wrapper<RigidBody2D>, 2> Contact::getBodies() const {
+std::array<std::reference_wrapper<RigidBody2D>, 2> &Contact::getBodies() {
   return bodies;
 }
 float Contact::getFriction() const { return friction; }
@@ -33,15 +33,9 @@ sf::Vector2f Contact::calculateFrictionlessImpulse() {
   std::array<sf::Vector2f, 2> relativeContactPosition;
   relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
   relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
+
   float totalInverseMass =
       bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
-  bodies[0].get().addDisplacement(contactNormal * penetrationDepth *
-                                  bodies[0].get().getInverseMass() /
-                                  totalInverseMass);
-  bodies[1].get().addDisplacement(-contactNormal * penetrationDepth *
-                                  bodies[1].get().getInverseMass() /
-                                  totalInverseMass);
-
   for (int i = 0; i < 2; i++) {
     linearVelocityAtContacRelativeToCenter[i] =
         bodies[i].get().getAngularVelocity() *
@@ -84,4 +78,14 @@ void Contact::applyVelocityChange() {
   velocityChange[1] = -impulse * bodies[1].get().getInverseMass();
   bodies[1].get().addVelocity(velocityChange[1]);
   bodies[1].get().addAngularVelocity(angularVelocityChange[1]);
+}
+void Contact::applyPositionChange(std::array<sf::Vector2f, 2> &displacement) {
+  float totalInverseMass =
+      bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
+  displacement[0] = contactNormal * penetrationDepth *
+                    bodies[0].get().getInverseMass() / totalInverseMass;
+  displacement[1] = -contactNormal * penetrationDepth *
+                    bodies[1].get().getInverseMass() / totalInverseMass;
+  bodies[0].get().addDisplacement(displacement[0]);
+  bodies[1].get().addDisplacement(displacement[1]);
 }

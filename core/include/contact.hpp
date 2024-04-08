@@ -18,7 +18,7 @@ public:
   sf::Vector2f getContactPoint() const;
   sf::Vector2f getContactNormal() const;
   float getPenetrationDepth() const;
-  std::array<std::reference_wrapper<RigidBody2D>, 2> getBodies() const;
+  std::array<std::reference_wrapper<RigidBody2D>, 2> &getBodies();
   float getFriction() const;
   float getResitution() const;
   // setters declare:
@@ -29,6 +29,7 @@ public:
   void setResitution(float);
 
   void applyVelocityChange();
+  void applyPositionChange(std::array<sf::Vector2f, 2> &);
   void calculateDesiredVelocty();
 
 private:

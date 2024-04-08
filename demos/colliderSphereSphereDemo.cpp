@@ -1,7 +1,6 @@
-#include "collisionHandler.hpp"
+#include "contactResolver.hpp"
 #include "forceGeneration.hpp"
 #include "shapes.hpp"
-#include "types.hpp"
 #include "world.hpp"
 #include <SFML/Graphics.hpp>
 #include <chrono>
@@ -35,7 +34,7 @@ int main() {
   Box mbox(400, 600, 800, 100);
   Box mboxLeft(0, 230, 100, 600);
   Box mboxRight(600, 230, 100, 600);
-
+  ContactResolver contactResolver;
   // boxes.push_back(mbox);
   // boxes.push_back(mboxLeft);
   // boxes.push_back(mboxRight);
@@ -90,9 +89,7 @@ int main() {
       }
     }
 
-    for (auto &contact : cd.contacts) {
-      contact.applyVelocityChange();
-    }
+    contactResolver.resolveContacts(cd, deltaTime);
     // world.startFrame();
     for (auto &circle : circles) {
       gravity.updateForce(circle, deltaTime);
