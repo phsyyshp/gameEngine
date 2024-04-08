@@ -10,11 +10,11 @@ int main() {
   sf::ContextSettings settings;
   sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
                           sf::Style::Default);
-  window.setFramerateLimit(60);
+  // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
   float timeScale = 1;
-  float lengthScale = 8001.f;
+  float lengthScale = 10001.f;
   int frameNo = 0;
   //   lengthScale = 0.f;
   Circle mcirc0(400, 1500, 1001);
@@ -32,15 +32,18 @@ int main() {
   std::vector<Circle> circles;
   std::vector<Box> boxes;
   Box mbox(400, 600, 800, 100);
-  Box mboxLeft(0, 230, 100, 600);
-  Box mboxRight(600, 230, 100, 600);
+  Box mboxLeft(0, 250, 100, 600);
+  Box mboxRight(600, 250, 100, 600);
   ContactResolver contactResolver;
-  // boxes.push_back(mbox);
-  // boxes.push_back(mboxLeft);
-  // boxes.push_back(mboxRight);
-  circles.push_back(mcirc);
-  circles.push_back(mcirc2);
-  circles.push_back(mcirc0);
+  mbox.setInverseInertia(0.F);
+  mboxLeft.setInverseInertia(0.F);
+  mboxRight.setInverseInertia(0.F);
+  boxes.push_back(mbox);
+  boxes.push_back(mboxLeft);
+  boxes.push_back(mboxRight);
+  // circles.push_back(mcirc);
+  // circles.push_back(mcirc2);
+  // circles.push_back(mcirc0);
 
   CollisionData cd;
 
@@ -53,12 +56,12 @@ int main() {
   while (window.isOpen()) {
     // record the time in high precision
 
-    // std::chrono::steady_clock::time_point currentFrameTime =
-    //     std::chrono::steady_clock::now();
-    // frameDuration = std::chrono::duration_cast<std::chrono::duration<float>>(
-    //                     currentFrameTime - lastFrameTime)
-    //                     .count();
-    // lastFrameTime = currentFrameTime;
+    std::chrono::steady_clock::time_point currentFrameTime =
+        std::chrono::steady_clock::now();
+    frameDuration = std::chrono::duration_cast<std::chrono::duration<float>>(
+                        currentFrameTime - lastFrameTime)
+                        .count();
+    lastFrameTime = currentFrameTime;
     sf::Event event;
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) {
@@ -78,26 +81,30 @@ int main() {
       }
     }
     // std::cout << "Number of circles: " << circles.size() << "\n";
-    for (int i = 0; i < circles.size(); i++) {
-      for (int j = i + 1; j < circles.size(); j++) {
-        Collider::sphereAndSphere(circles[i], circles[j], cd);
+    int subStep = 10;
+    for (int a = 0; a < subStep; a++) {
+      for (int i = 0; i < circles.size(); i++) {
+        for (int j = i + 1; j < circles.size(); j++) {
+          Collider::sphereAndSphere(circles[i], circles[j], cd);
+        }
+        for (auto &box : boxes) {
+          // std::cout << Collider::sphereAndRectangle(circles[i], box, cd) <<
+          // "\n";
+          Collider::sphereAndRectangle(circles[i], box, cd);
+        }
+      }
+
+      contactResolver.resolveContacts(cd, deltaTime / subStep);
+      cd.clear();
+      // world.startFrame();
+      for (auto &circle : circles) {
+        gravity.updateForce(circle, deltaTime / subStep);
+        circle.integrate(deltaTime / subStep);
       }
       for (auto &box : boxes) {
-        // std::cout << Collider::sphereAndRectangle(circles[i], box, cd) <<
-        // "\n";
-        Collider::sphereAndRectangle(circles[i], box, cd);
+        gravity.updateForce(box, deltaTime / subStep);
+        box.integrate(deltaTime / subStep);
       }
-    }
-
-    contactResolver.resolveContacts(cd, deltaTime);
-    // world.startFrame();
-    for (auto &circle : circles) {
-      gravity.updateForce(circle, deltaTime);
-      circle.integrate(deltaTime);
-    }
-    for (auto &box : boxes) {
-      gravity.updateForce(box, deltaTime);
-      box.integrate(deltaTime);
     }
 
     // world.runPhysics(deltaTime);
@@ -117,18 +124,17 @@ int main() {
       box.update();
     }
 
-    // frameNo++;
-    // if (frameNo % 100 == 0) {
-    //   std::cout << "Fps:" << 1 / frameDuration << "\n";
-    // }
-    std::cout << cd.contacts.size() << "\n";
+    frameNo++;
+    if (frameNo % 100 == 0) {
+      std::cout << "Fps:" << 1 / frameDuration << "\n";
+    }
+    // std::cout << cd.contacts.size() << "\n";
     if (!boxes.empty()) {
 
-      std::cout << boxes[0].getAngularVelocity() << "\n";
+      // std::cout << boxes[0].getAngularVelocity() << "\n";
     }
 
     window.display();
-    cd.clear();
   }
   return 0;
 }
