@@ -1,4 +1,5 @@
 #include "collisionHandler.hpp"
+#include "contact.hpp"
 #include <SFML/System/Vector2.hpp>
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                CollisionData &collisionData) {
@@ -60,4 +61,77 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
   collisionData.contacts.push_back(contact);
   return true;
+}
+bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
+                                     CollisionData &collisionData) {
+  if (boxA.getInverseMass() == 0 && boxB.getInverseMass() == 0) {
+    return false;
+  }
+  // get axes of Rectangle
+  sf::Vector2f positionA = boxA.RigidBody2D::getPosition();
+  sf::Vector2f halfSize = boxA.getHalfSize();
+  std::array<sf::Vector2f, 2> axesA =
+      getBaseCoordinateSystem(boxA.getOrientation());
+  sf::Vector2f positionB = boxB.RigidBody2D::getPosition();
+  sf::Vector2f halfSizeB = boxB.getHalfSize();
+  std::array<sf::Vector2f, 2> axesB =
+      getBaseCoordinateSystem(boxB.getOrientation());
+  sf::Vector2f distanceVector = positionA - positionB;
+  float minOverlap = 10'000;
+  sf::Vector2f smallestAxis;
+  for (int i = 0; i < 2; i++) {
+    sf::Vector2f axis = axesA[i];
+    if (absDot(axis, distanceVector) > (absDot(axesA[0] * halfSize.x, axis) +
+                                        absDot(axesA[1] * halfSize.y, axis) +
+                                        absDot(axesB[0] * halfSizeB.x, axis) +
+                                        absDot(axesB[0] * halfSizeB.y, axis))) {
+      return false;
+    } else {
+      float overlap = std::abs(absDot(axis, distanceVector) -
+                               (absDot(axesA[0] * halfSize.x, axis) +
+                                absDot(axesA[1] * halfSize.y, axis) +
+                                absDot(axesB[0] * halfSizeB.x, axis) +
+                                absDot(axesB[0] * halfSizeB.y, axis)));
+      if (overlap < minOverlap) {
+        minOverlap = overlap;
+        smallestAxis = axis;
+      }
+    }
+    axis = axesB[i];
+    if (absDot(axis, distanceVector) > (absDot(axesA[0] * halfSize.x, axis) +
+                                        absDot(axesA[1] * halfSize.y, axis) +
+                                        absDot(axesB[0] * halfSizeB.x, axis) +
+                                        absDot(axesB[0] * halfSizeB.y, axis))) {
+      return false;
+    } else {
+      float overlap = std::abs(absDot(axis, distanceVector) -
+                               (absDot(axesA[0] * halfSize.x, axis) +
+                                absDot(axesA[1] * halfSize.y, axis) +
+                                absDot(axesB[0] * halfSizeB.x, axis) +
+                                absDot(axesB[0] * halfSizeB.y, axis)));
+      if (overlap < minOverlap) {
+        minOverlap = overlap;
+        smallestAxis = axis;
+      }
+    }
+  }
+  Contact contact(boxA, boxB);
+  contact.setContactNormal(normalise(smallestAxis));
+  contact.setPenetrationDepth(minOverlap);
+  std::array<sf::Vector2f, 4> verticesB = {
+      positionB + elementViseMultipication((axesB[0] + axesB[1]), halfSizeB),
+      positionB + elementViseMultipication((axesB[0] - axesB[1]), halfSizeB),
+      positionB + elementViseMultipication((-axesB[0] - axesB[1]), halfSizeB),
+      positionB + elementViseMultipication((-axesB[0] + axesB[1]), halfSizeB)};
+  sf::Vector2f closestPoint;
+  for (auto vertex : verticesB) {
+    sf::Vector2f relativeVertex =
+        transformToCordinateSystem(vertex, positionA, boxA.getOrientation());
+    if ((std::abs(relativeVertex.x) <= std::abs(halfSize.x)) &&
+        (std::abs(relativeVertex.y) <= std::abs(halfSize.y))) {
+      contact.setContactPoint(vertex);
+      collisionData.contacts.push_back(contact);
+      return true;
+    }
+  }
 }

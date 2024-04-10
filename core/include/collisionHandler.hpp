@@ -13,4 +13,5 @@ class Collider {
 public:
   static bool sphereAndSphere(Circle &, Circle &, CollisionData &);
   static bool sphereAndRectangle(Circle &, Box &, CollisionData &);
+  static bool rectangleAndRectangle(Box &, Box &, CollisionData &);
 };
