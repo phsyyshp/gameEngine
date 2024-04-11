@@ -38,5 +38,5 @@ private:
   float penetrationDepth;
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
-  float resitution = 0.8f;
+  float resitution = 0.0f;
 };

@@ -1,6 +1,8 @@
 #pragma once
 #include "rigidBody2D.hpp"
+#include "utils.hpp"
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <cmath>
 class Circle : public RigidBody2D, public sf::CircleShape {
 public:
@@ -41,6 +43,24 @@ public:
     setPosition(position.x, position.y);
     setRotation(orientation / M_PIf * 180.f);
   };
+  std::array<sf::Vector2f, 4> getVertices() {
+
+    // position = RigidBody2D::getPosition();
+    std::array<sf::Vector2f, 2> axes =
+        getBaseCoordinateSystem(getOrientation());
+    std::array<sf::Vector2f, 4> vertices = {
+        position + (axes[0] * halfSize.x + axes[1] * halfSize.y),
+        position + (axes[0] * halfSize.x - axes[1] * halfSize.y),
+        position + (-axes[0] * halfSize.x - axes[1] * halfSize.y),
+        position + (-axes[0] * halfSize.x + axes[1] * halfSize.y)};
+    return vertices;
+  }
+  bool isPointIn(const sf::Vector2f &point) {
+    sf::Vector2f relativePoint =
+        transformToCordinateSystem(point, position, getOrientation());
+    return (std::abs(relativePoint.x) <= std::abs(halfSize.x)) &&
+           (std::abs(relativePoint.y) <= std::abs(halfSize.y));
+  }
 
 private:
   sf::Vector2f halfSize;

@@ -58,3 +58,6 @@ void RigidBody2D::clearAccumulators() {
   forceAccum = {0.F, 0.F};
   torqueAccum = 0.F;
 }
+void RigidBody2D::setOrientation(float orientation_) {
+  orientation = orientation_;
+}

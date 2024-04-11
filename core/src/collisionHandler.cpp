@@ -79,36 +79,37 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
   sf::Vector2f distanceVector = positionA - positionB;
   float minOverlap = 10'000;
   sf::Vector2f smallestAxis;
+  bool overLapCondition;
   for (int i = 0; i < 2; i++) {
     sf::Vector2f axis = axesA[i];
-    if (absDot(axis, distanceVector) > (absDot(axesA[0] * halfSize.x, axis) +
+    overLapCondition =
+        absDot(axis, distanceVector) > (absDot(axesA[0] * halfSize.x, axis) +
                                         absDot(axesA[1] * halfSize.y, axis) +
                                         absDot(axesB[0] * halfSizeB.x, axis) +
-                                        absDot(axesB[0] * halfSizeB.y, axis))) {
+                                        absDot(axesB[1] * halfSizeB.y, axis));
+
+    if (overLapCondition) {
       return false;
     } else {
       float overlap = std::abs(absDot(axis, distanceVector) -
                                (absDot(axesA[0] * halfSize.x, axis) +
                                 absDot(axesA[1] * halfSize.y, axis) +
                                 absDot(axesB[0] * halfSizeB.x, axis) +
-                                absDot(axesB[0] * halfSizeB.y, axis)));
+                                absDot(axesB[1] * halfSizeB.y, axis)));
       if (overlap < minOverlap) {
         minOverlap = overlap;
         smallestAxis = axis;
       }
     }
     axis = axesB[i];
-    if (absDot(axis, distanceVector) > (absDot(axesA[0] * halfSize.x, axis) +
-                                        absDot(axesA[1] * halfSize.y, axis) +
-                                        absDot(axesB[0] * halfSizeB.x, axis) +
-                                        absDot(axesB[0] * halfSizeB.y, axis))) {
+    if (overLapCondition) {
       return false;
     } else {
       float overlap = std::abs(absDot(axis, distanceVector) -
                                (absDot(axesA[0] * halfSize.x, axis) +
                                 absDot(axesA[1] * halfSize.y, axis) +
                                 absDot(axesB[0] * halfSizeB.x, axis) +
-                                absDot(axesB[0] * halfSizeB.y, axis)));
+                                absDot(axesB[1] * halfSizeB.y, axis)));
       if (overlap < minOverlap) {
         minOverlap = overlap;
         smallestAxis = axis;
@@ -116,22 +117,36 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
     }
   }
   Contact contact(boxA, boxB);
-  contact.setContactNormal(normalise(smallestAxis));
+  sf::Vector2f normal = normalise(smallestAxis);
   contact.setPenetrationDepth(minOverlap);
-  std::array<sf::Vector2f, 4> verticesB = {
-      positionB + elementViseMultipication((axesB[0] + axesB[1]), halfSizeB),
-      positionB + elementViseMultipication((axesB[0] - axesB[1]), halfSizeB),
-      positionB + elementViseMultipication((-axesB[0] - axesB[1]), halfSizeB),
-      positionB + elementViseMultipication((-axesB[0] + axesB[1]), halfSizeB)};
   sf::Vector2f closestPoint;
+  std::array<sf::Vector2f, 4> verticesB = boxB.getVertices();
+  std::array<sf::Vector2f, 4> verticesA = boxA.getVertices();
+  bool isTouch = false;
   for (auto vertex : verticesB) {
-    sf::Vector2f relativeVertex =
-        transformToCordinateSystem(vertex, positionA, boxA.getOrientation());
-    if ((std::abs(relativeVertex.x) <= std::abs(halfSize.x)) &&
-        (std::abs(relativeVertex.y) <= std::abs(halfSize.y))) {
+    if (boxA.isPointIn(vertex)) {
       contact.setContactPoint(vertex);
+      isTouch = true;
+      if (!boxA.isPointIn(normal * (1.001f) + vertex)) {
+        normal = -normal;
+      }
+      contact.setContactNormal(normal);
       collisionData.contacts.push_back(contact);
-      return true;
     }
   }
+  for (auto vertex : verticesA) {
+    if (boxB.isPointIn(vertex)) {
+      isTouch = true;
+      Contact contact2(boxA, boxB);
+      contact2.setContactPoint(vertex);
+      contact2.setPenetrationDepth(minOverlap);
+      if (boxB.isPointIn(normal * (1.001f) + vertex)) {
+        normal = -normal;
+      }
+      contact2.setContactNormal(normal);
+      collisionData.contacts.push_back(contact2);
+    }
+  }
+
+  return isTouch;
 }

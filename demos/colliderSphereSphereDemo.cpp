@@ -1,3 +1,4 @@
+#include "collisionHandler.hpp"
 #include "contactResolver.hpp"
 #include "forceGeneration.hpp"
 #include "shapes.hpp"
@@ -13,7 +14,7 @@ int main() {
   sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
                           sf::Style::Default);
   // window.setFramerateLimit(60);
-  float deltaTime = 0.00001f;
+  float deltaTime = 0.001f;
   float frameDuration;
   float timeScale = 1;
   float lengthScale = 10001.f;
@@ -78,66 +79,28 @@ int main() {
         if (event.mouseButton.button == sf::Mouse::Right) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
           boxes.push_back(Box(mousePos.x, mousePos.y, 200, 25));
-          (*(boxes.end() - 1)).setInverseMass(0.015f);
+          (*(boxes.end() - 1)).setInverseMass(0.05f);
         }
       }
     }
     // std::cout << "Number of circles: " << circles.size() << "\n";
     int subStep = 10;
+
+    sf::CircleShape cpx(5.f);
     for (int a = 0; a < subStep; a++) {
+
       for (int i = 0; i < circles.size(); i++) {
         for (int j = i + 1; j < circles.size(); j++) {
           Collider::sphereAndSphere(circles[i], circles[j], cd);
         }
         for (auto &box : boxes) {
-          // std::cout << Collider::sphereAndRectangle(circles[i], box, cd) <<
-          // "\n";
           Collider::sphereAndRectangle(circles[i], box, cd);
         }
       }
+
       for (int i = 0; i < boxes.size(); i++) {
         for (int j = i + 1; j < boxes.size(); j++) {
-
-          if (Collider::rectangleAndRectangle(boxes[i], boxes[j], cd)) {
-            // boxes[i].setFillColor(sf::Color::Red);
-            // boxes[j].setFillColor(sf::Color::Red);
-            sf::CircleShape con(10.f);
-            con.setFillColor(sf::Color::Blue);
-            con.setPosition(((cd.contacts.end() - 1)->getContactPoint()));
-            // std::cout << con.getPosition().x << "||" << con.getPosition().y
-            //           << "\n";
-            Box boxA = boxes[i];
-            Box boxB = boxes[j];
-            sf::Vector2f positionA = boxA.RigidBody2D::getPosition();
-            sf::Vector2f halfSize = boxA.getHalfSize();
-            std::array<sf::Vector2f, 2> axesA =
-                getBaseCoordinateSystem(boxA.getOrientation());
-            sf::Vector2f positionB = boxB.RigidBody2D::getPosition();
-            sf::Vector2f halfSizeB = boxB.getHalfSize();
-            std::array<sf::Vector2f, 2> axesB =
-                getBaseCoordinateSystem(boxB.getOrientation());
-            sf::Vector2f distanceVector = positionA - positionB;
-            std::array<sf::Vector2f, 4> verticesB = {
-
-                positionB +
-                    elementViseMultipication((axesB[0] + axesB[1]), halfSizeB),
-                positionB +
-                    elementViseMultipication((axesB[0] - axesB[1]), halfSizeB),
-                positionB +
-                    elementViseMultipication((-axesB[0] - axesB[1]), halfSizeB),
-                positionB + elementViseMultipication((-axesB[0] + axesB[1]),
-                                                     halfSizeB)};
-            for (int k = 0; k < 4; k++) {
-              sf::CircleShape ax(5.f);
-              ax.setFillColor(sf::Color::Red);
-              ax.setPosition(verticesB[k]);
-              ax.setOrigin(5, 5);
-              window.draw(ax);
-            }
-            window.draw(con);
-          }
-          Collider::rectangleAndRectangle(boxes[j], boxes[i], cd);
-          // cd.contacts.end()->setPenetrationDepth(0);
+          Collider::rectangleAndRectangle(boxes[i], boxes[j], cd);
         }
       }
 
@@ -168,6 +131,8 @@ int main() {
     for (auto &box : boxes) {
       window.draw(box);
       box.update();
+      box.setOutlineThickness(1.f);
+      box.setOutlineColor(sf::Color::Red);
     }
 
     frameNo++;
@@ -180,6 +145,7 @@ int main() {
       // std::cout << boxes[0].getAngularVelocity() << "\n";
     }
 
+    window.draw(cpx);
     window.display();
     window.clear(sf::Color::Black);
   }

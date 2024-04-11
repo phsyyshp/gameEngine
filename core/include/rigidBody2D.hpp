@@ -12,6 +12,7 @@ public:
   float getInverseInertia() const;
   void setInverseMass(float);
   void setInverseInertia(float);
+  void setOrientation(float);
   void addDisplacement(const sf::Vector2f &);
   void integrate(float deltaTime);
   void clearAccumulators();
@@ -32,7 +33,8 @@ private:
   float torqueAccum = 0.F;
   float angularDamping = 0.F;
   float linearDamping = 0.F;
-  sf::Vector2f lastFrameAcceleration;
+  sf::Vector2f lastFrameAcceleration = {0.f, 0.f};
+  ;
   float inverseInertia = 0.F;
 
 protected:
