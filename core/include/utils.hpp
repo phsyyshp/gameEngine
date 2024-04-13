@@ -18,3 +18,5 @@ sf::Vector2f rotate(const sf::Vector2f &, float);
 std::array<sf::Vector2f, 2> getBaseCoordinateSystem(float);
 sf::Vector2f elementViseMultipication(const sf::Vector2f &,
                                       const sf::Vector2f &);
+sf::Vector2f tripleproduct(const sf::Vector2f &, const sf::Vector2f &,
+                           const sf::Vector2f &);

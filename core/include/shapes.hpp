@@ -4,6 +4,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
+#include <limits>
 class Circle : public RigidBody2D, public sf::CircleShape {
 public:
   Circle(float x, float y, float r)
@@ -43,7 +44,7 @@ public:
     setPosition(position.x, position.y);
     setRotation(orientation / M_PIf * 180.f);
   };
-  std::array<sf::Vector2f, 4> getVertices() {
+  std::array<sf::Vector2f, 4> getVertices() const {
 
     // position = RigidBody2D::getPosition();
     std::array<sf::Vector2f, 2> axes =
@@ -54,6 +55,21 @@ public:
         position + (-axes[0] * halfSize.x - axes[1] * halfSize.y),
         position + (-axes[0] * halfSize.x + axes[1] * halfSize.y)};
     return vertices;
+  }
+
+  sf::Vector2f getSupport(const sf::Vector2f &direction) const {
+    float maxDot = -std::numeric_limits<float>::max();
+    float projection;
+    sf::Vector2f supportPoint;
+    std::array<sf::Vector2f, 4> vertices = getVertices();
+    for (auto &vertex : vertices) {
+      projection = dot(vertex, direction);
+      if (maxDot < projection) {
+        maxDot = projection;
+        supportPoint = vertex;
+      }
+    }
+    return supportPoint;
   }
   bool isPointIn(const sf::Vector2f &point) {
     sf::Vector2f relativePoint =

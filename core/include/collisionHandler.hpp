@@ -1,6 +1,7 @@
 #pragma once
 #include "contact.hpp"
 #include "shapes.hpp"
+#include <SFML/System/Vector2.hpp>
 #include <cmath>
 class CollisionData {
 public:
@@ -14,4 +15,15 @@ public:
   static bool sphereAndSphere(Circle &, Circle &, CollisionData &);
   static bool sphereAndRectangle(Circle &, Box &, CollisionData &);
   static bool rectangleAndRectangle(Box &, Box &, CollisionData &);
+  static sf::Vector2f getSupportP(const std::vector<sf::Vector2f> &vertices,
+                                  const sf::Vector2f &direction);
+  static sf::Vector2f getSupportS(const Circle &circle,
+                                  const sf::Vector2f &direction);
+
+  static bool GJKintersectionPP(const Box &boxA, const Box &boxB);
+  static bool GJKintersectionSP(const Circle &circle,
+                                const std::vector<sf::Vector2f> &verticesB);
+  static bool nearestSimplex(std::vector<sf::Vector2f> &simplex,
+                             sf::Vector2f &direction, const Box &boxA,
+                             const Box &boxB);
 };

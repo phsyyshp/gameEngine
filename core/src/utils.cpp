@@ -74,3 +74,8 @@ inverseTransformToCordinateSystem(const sf::Vector2f &vectorToTransformed,
       dot(vectorToTransformed, baseVector[1]) + positionOfOrigin.y;
   return transformedVector;
 }
+sf::Vector2f tripleproduct(const sf::Vector2f &a, const sf::Vector2f &b,
+                           const sf::Vector2f &c) {
+
+  return b * dot(c, a) - a * dot(b, c);
+}
