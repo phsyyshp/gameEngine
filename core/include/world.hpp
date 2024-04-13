@@ -2,9 +2,10 @@
 #include "contactResolver.hpp"
 #include "forceGeneration.hpp"
 #include "rigidBody2D.hpp"
+#include <SFML/Graphics/RenderWindow.hpp>
 class World {
 public:
-  World(int bodyCount = 200) {
+  World(int bodyCount = 200, bool isDebug_ = false) : isDebug(isDebug_) {
     boxes.reserve(bodyCount);
     circles.reserve(bodyCount);
   }
@@ -13,16 +14,27 @@ public:
   void runPhysics(float deltaTime, int subStep = 1);
   void registerBody(Box &body);
   void registerBody(Circle &body);
-  void registerForce(ForceGenerator &forceGenerator);
+  void registerGravity(Gravity &forceGenerator);
+
+  std::vector<Circle> &getCircles();
+  std::vector<Box> &getBoxes();
+  size_t getBodySize() const;
+  const CollisionData &getCollisionData() const;
 
   void findContacts();
   void resolveCollisions();
+  void setSleepers();
   // void regiterForceGenerator(ForceGenerator &forceGenerator);
+
+  void setWindow(sf::RenderWindow &window);
+  void showContacts(const CollisionData &cd);
+  sf::RenderWindow *window;
 
 private:
   std::vector<Box> boxes;
   std::vector<Circle> circles;
   CollisionData collisionData;
   ContactResolver contactResolver;
-  std::vector<ForceGenerator> forceGenerators;
+  std::vector<Gravity> gravity;
+  bool isDebug = false;
 };

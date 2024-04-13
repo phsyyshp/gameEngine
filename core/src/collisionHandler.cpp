@@ -3,7 +3,9 @@
 #include <SFML/System/Vector2.hpp>
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                CollisionData &collisionData) {
-
+  if (!(a.isAwake()) && !(b.isAwake())) {
+    return false;
+  }
   if (a.getInverseMass() == 0 && b.getInverseMass() == 0) {
     return false;
   }
@@ -18,13 +20,16 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
   Contact contact(a, b);
 
   contact.setContactNormal(normal);
-  contact.setContactPoint(positionA + midLine * 0.5f);
+  contact.setContactPoint(positionA - normal * a.getRadius());
   contact.setPenetrationDepth(a.getRadius() + b.getRadius() - distance);
   collisionData.contacts.push_back(contact);
   return true;
 }
 bool Collider::sphereAndRectangle(Circle &circle, Box &box,
                                   CollisionData &collisionData) {
+  if (!(circle.isAwake()) && !(box.isAwake())) {
+    return false;
+  }
   // Transform the centre of the sphere into box coordinates
   sf::Vector2f circleCenter = circle.RigidBody2D::getPosition();
   sf::Vector2f boxCenter = box.RigidBody2D::getPosition();
@@ -64,6 +69,9 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
 }
 bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
                                      CollisionData &collisionData) {
+  if (!(boxA.isAwake()) && !(boxB.isAwake())) {
+    return false;
+  }
   if (boxA.getInverseMass() == 0 && boxB.getInverseMass() == 0) {
     return false;
   }
@@ -123,6 +131,8 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
   std::array<sf::Vector2f, 4> verticesB = boxB.getVertices();
   std::array<sf::Vector2f, 4> verticesA = boxA.getVertices();
   bool isTouch = false;
+  bool isTouch2 = false;
+
   for (auto vertex : verticesB) {
     if (boxA.isPointIn(vertex)) {
       contact.setContactPoint(vertex);
@@ -134,12 +144,13 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
       collisionData.contacts.push_back(contact);
     }
   }
+
+  Contact contact2(boxA, boxB);
   for (auto vertex : verticesA) {
     if (boxB.isPointIn(vertex)) {
-      isTouch = true;
-      Contact contact2(boxA, boxB);
+      isTouch2 = true;
       contact2.setContactPoint(vertex);
-      contact2.setPenetrationDepth(minOverlap);
+      contact2.setPenetrationDepth(0 * minOverlap);
       if (boxB.isPointIn(normal * (1.001f) + vertex)) {
         normal = -normal;
       }
@@ -147,6 +158,13 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
       collisionData.contacts.push_back(contact2);
     }
   }
-
-  return isTouch;
+  // if (isTouch && isTouch2) {
+  //   Contact contact3(boxA, boxB);
+  //   contact3.setContactPoint(
+  //       (contact.getContactPoint() + contact2.getContactPoint()) * 0.5f);
+  //   contact3.setContactNormal(normal);
+  //   contact3.setPenetrationDepth(0 * minOverlap);
+  //   collisionData.contacts.push_back(contact3);
+  // }
+  return isTouch || isTouch2;
 }

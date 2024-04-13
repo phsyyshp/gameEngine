@@ -25,6 +25,11 @@ public:
   sf::Vector2f getVelocity() const;
   float getAngularVelocity() const;
   float getOrientation() const;
+  bool isAwake() const;
+  int getAwakeTimer() const;
+  void setAwakeTimer(int);
+  void wakeUp();
+  void sleep();
 
 private:
   float inverseMass = 0.F;
@@ -36,6 +41,10 @@ private:
   sf::Vector2f lastFrameAcceleration = {0.f, 0.f};
   ;
   float inverseInertia = 0.F;
+
+  bool isAwake_ = true;
+
+  int isAwakeTimer = 0;
 
 protected:
   float orientation = 0.F;

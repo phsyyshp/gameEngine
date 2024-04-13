@@ -30,7 +30,8 @@ public:
 
   void applyVelocityChange();
   void applyPositionChange(std::array<sf::Vector2f, 2> &);
-  void calculateDesiredVelocty();
+  void applyVelocityChangeSphereSphere();
+  sf::Vector2f calculateFrictionlessImpulseSphereSphere();
 
 private:
   sf::Vector2f contactPoint;
@@ -38,5 +39,5 @@ private:
   float penetrationDepth;
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
-  float resitution = 0.0f;
+  float resitution = 0.5f;
 };

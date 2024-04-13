@@ -61,3 +61,16 @@ void RigidBody2D::clearAccumulators() {
 void RigidBody2D::setOrientation(float orientation_) {
   orientation = orientation_;
 }
+bool RigidBody2D::isAwake() const { return isAwake_; }
+int RigidBody2D::getAwakeTimer() const { return isAwakeTimer; }
+void RigidBody2D::setAwakeTimer(int awakeTimer) {
+  this->isAwakeTimer = awakeTimer;
+}
+void RigidBody2D::wakeUp() {
+  isAwakeTimer = 0;
+  isAwake_ = true;
+}
+void RigidBody2D::sleep() {
+  isAwake_ = false;
+  isAwakeTimer = 0;
+}
