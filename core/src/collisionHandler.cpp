@@ -190,21 +190,21 @@ sf::Vector2f Collider::getSupportS(const Circle &circle,
          normalise(direction) * circle.getRadius();
 }
 
-bool Collider::GJKintersectionPP(const Box &boxA, const Box &boxB) {
+bool Collider::GJKintersectionPP(const Box &shapeA, const Box &shapeB) {
   sf::Vector2f direction =
-      boxA.RigidBody2D::getPosition() - boxB.RigidBody2D::getPosition();
+      shapeA.RigidBody2D::getPosition() - shapeB.RigidBody2D::getPosition();
   sf::Vector2f pointOnMinkowskiDiffAmB =
-      boxA.getSupport(direction) - boxB.getSupport(-direction);
+      shapeA.getSupport(direction) - shapeB.getSupport(-direction);
   direction = -pointOnMinkowskiDiffAmB;
   std::vector<sf::Vector2f> simplex{pointOnMinkowskiDiffAmB};
   while (true) {
     pointOnMinkowskiDiffAmB =
-        boxA.getSupport(direction) - boxB.getSupport(-direction);
+        shapeA.getSupport(direction) - shapeB.getSupport(-direction);
     if (dot(pointOnMinkowskiDiffAmB, direction) < 0) {
       return false;
     }
     simplex.push_back(pointOnMinkowskiDiffAmB);
-    bool containsOrigin = nearestSimplex(simplex, direction, boxA, boxB);
+    bool containsOrigin = nearestSimplex(simplex, direction, shapeA, shapeB);
     if (containsOrigin) {
       return true;
     }
@@ -215,12 +215,13 @@ bool Collider::GJKintersectionSP(const Circle &circle,
                                  const std::vector<sf::Vector2f> &verticesB) {}
 
 bool Collider::nearestSimplex(std::vector<sf::Vector2f> &simplex,
-                              sf::Vector2f &direction, const Box &boxA,
-                              const Box &boxB) {
+                              sf::Vector2f &direction, const Box &shapeA,
+                              const Box &shapeB) {
   sf::Vector2f sideCB = simplex[1] - simplex[0];
   sf::Vector2f sideC0 = -simplex[0];
   direction = tripleproduct(sideCB, sideC0, sideCB);
-  simplex.push_back(boxA.getSupport(direction) - boxB.getSupport(-direction));
+  simplex.push_back(shapeA.getSupport(direction) -
+                    shapeB.getSupport(-direction));
   bool containsOrigin = false;
   sf::Vector2f sideAB = simplex[1] - simplex[2];
   sf::Vector2f sideAC = simplex[0] - simplex[2];

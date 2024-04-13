@@ -20,10 +20,10 @@ public:
   static sf::Vector2f getSupportS(const Circle &circle,
                                   const sf::Vector2f &direction);
 
-  static bool GJKintersectionPP(const Box &boxA, const Box &boxB);
+  static bool GJKintersectionPP(const Box &shapeA, const Box &shapeB);
   static bool GJKintersectionSP(const Circle &circle,
                                 const std::vector<sf::Vector2f> &verticesB);
   static bool nearestSimplex(std::vector<sf::Vector2f> &simplex,
-                             sf::Vector2f &direction, const Box &boxA,
-                             const Box &boxB);
+                             sf::Vector2f &direction, const Box &shapeA,
+                             const Box &shapeB);
 };
