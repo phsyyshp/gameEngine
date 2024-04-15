@@ -56,7 +56,7 @@ void ContactResolver::resolvePenetration(CollisionData &collisionData) {
 void ContactResolver::sequentialImpulse(CollisionData &collisionData,
                                         float deltaTime) {
   float totalChange = 0;
-  int i = 10;
+  int i = 0;
   // std::cout << collisionData.size() << "\n";
   do {
     totalChange = 0;
@@ -69,9 +69,10 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
       lagrangianMultiplier = totalImpulseNormal - oldImpulseNormal;
       contact.setTotalImpulseNormal(totalImpulseNormal);
       contact.applyVelocityChange(lagrangianMultiplier);
-      totalChange += std::abs(lagrangianMultiplier);
+      totalChange += lagrangianMultiplier;
     }
     // std::cout << totalChange << "\n";
     i++;
-  } while (totalChange > 0.001F && i < 100);
+  } while (totalChange > 0.001F && i < 30);
+  std::cout << totalChange << "itNo" << i << "\n";
 }
