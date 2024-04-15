@@ -119,8 +119,10 @@ float Contact::solveContactConstraints(float deltaTime) {
       angularComponent[0] + angularComponent[1] + totalInverseMass;
 
   float bias = 0;
-  float beta = 0.016F;
+  float beta = 0.05F;
+  beta = 0;
   bias = -beta / deltaTime * penetrationDepth;
+  // bias+=resitution*()
 
   float lagrangianMultiplier =
       -(dot(velocity[0] - velocity[1] + angularVelocity[0] - angularVelocity[1],

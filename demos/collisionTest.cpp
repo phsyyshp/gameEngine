@@ -158,7 +158,8 @@ int main() {
         std::array<sf::Vertex, 2> line = {
             sf::Vertex(cons.getContactPoint(), sf::Color::Green),
             sf::Vertex(cons.getContactPoint() +
-                           cons.getContactNormal() * cons.getPenetrationDepth(),
+                           cons.getContactNormal() *
+                               std::abs(cons.getPenetrationDepth()),
                        sf::Color::Green),
         };
         window.draw(line.data(), 2, sf::Lines);
