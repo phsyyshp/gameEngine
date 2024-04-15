@@ -1,37 +1,16 @@
 #include "contact.hpp"
+#include <SFML/System/Vector2.hpp>
 RigidBody2D Contact::emptyBody(-80, 80);
 // getters
 sf::Vector2f Contact::getContactPoint() const { return contactPoint; }
 sf::Vector2f Contact::getContactNormal() const { return contactNormal; }
 float Contact::getPenetrationDepth() const { return penetrationDepth; }
-std::array<std::reference_wrapper<RigidBody2D>, 2> Contact::getBodies() const {
+std::array<std::reference_wrapper<RigidBody2D>, 2> &Contact::getBodies() {
   return bodies;
 }
 float Contact::getFriction() const { return friction; }
 float Contact::getResitution() const { return resitution; }
 
-void Contact::calculateDesiredVelocty() {
-  std::array<sf::Vector2f, 2> velocity;
-  std::array<sf::Vector2f, 2> relativeContactPosition;
-  relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
-  relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
-  velocity[0] = bodies[0].get().getVelocity() +
-                bodies[0].get().getAngularVelocity() *
-                    perpendicular(relativeContactPosition[0]);
-  sf::Vector2f contactVelocity;
-  contactVelocity.x = dot(velocity[0], contactNormal);
-  contactVelocity.y = dot(velocity[0], perpendicular(contactNormal));
-
-  if (bodies[1].get().getPosition() != emptyBody.getPosition()) {
-    velocity[1] = bodies[1].get().getVelocity() +
-                  bodies[1].get().getAngularVelocity() *
-                      perpendicular(relativeContactPosition[1]);
-
-    contactVelocity.x -= dot(velocity[1], contactNormal);
-    contactVelocity.y -= dot(velocity[1], perpendicular(contactNormal));
-  }
-  desiredDeltaVelocity = -contactVelocity.x * (1 + resitution);
-}
 // setters
 void Contact::setContactPoint(const sf::Vector2f &contactPoint_) {
   contactPoint = contactPoint_;
@@ -45,83 +24,95 @@ void Contact::setPenetrationDepth(float penetrationDepth_) {
 void Contact::setFriction(float friction_) { friction = friction_; }
 void Contact::setResitution(float resitution_) { resitution = resitution_; }
 // helpers
-sf::Vector2f Contact::connectToWorld(const sf::Vector2f &connect) const {
-  sf::Vector2f world;
-  world.x =
-      connect.x * contactNormal.x + connect.y * perpendicular(contactNormal).x;
-  world.y =
-      connect.x * contactNormal.y + connect.y * perpendicular(contactNormal).y;
-  return world;
-}
 
 sf::Vector2f Contact::calculateFrictionlessImpulse() {
-  sf::Vector2f impulseContact;
-  std::array<sf::Vector2f, 2> velocity;
+  sf::Vector2f impulse;
+  std::array<sf::Vector2f, 2> linearVelocityAtContacRelativeToCenter;
+  std::array<sf::Vector2f, 2> linearVelocityAtContact;
+  std::array<float, 2> angularSpeed{};
   std::array<sf::Vector2f, 2> relativeContactPosition;
   relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
   relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
 
-  // Build a scalar that shows the change in velocity in
-  // world space for a unit impulse in the direction of the contact
-  // normal.
-  float impulsiveTorque = cross(relativeContactPosition[0], contactNormal);
-  float angularVelocity = bodies[0].get().getInverseInertia() * impulsiveTorque;
-  sf::Vector2f deltaVelWorld = perpendicular(relativeContactPosition[0]);
-  deltaVelWorld *= angularVelocity;
-  // Work out the change in velocity in contact coordinates.
-  float deltaVelocity = dot(deltaVelWorld, contactNormal);
-  // Add the linear component of velocity change.
-  deltaVelocity += bodies[0].get().getInverseMass();
-
-  // Check whether we need to consider the second body’s data.
-  if (bodies[1].get().getPosition() != emptyBody.getPosition()) {
-    // Go through the same transformation sequence again.
-    float impulsiveTorque = cross(relativeContactPosition[1], contactNormal);
-    float angularVelocity =
-        bodies[1].get().getInverseInertia() * impulsiveTorque;
-    sf::Vector2f deltaVelWorld = {-relativeContactPosition[1].y,
-                                  relativeContactPosition[1].x};
-    deltaVelWorld *= angularVelocity;
-    velocity[1] = bodies[1].get().getVelocity() +
-                  bodies[1].get().getAngularVelocity() *
-                      perpendicular(relativeContactPosition[1]);
-    deltaVelocity += dot(deltaVelWorld, contactNormal);
-    // Add the linear component of velocity change.
-    deltaVelocity += bodies[1].get().getInverseMass();
+  float totalInverseMass =
+      bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
+  for (int i = 0; i < 2; i++) {
+    linearVelocityAtContacRelativeToCenter[i] =
+        bodies[i].get().getAngularVelocity() *
+        perpendicular(relativeContactPosition[i]);
+    linearVelocityAtContact[i] = bodies[i].get().getVelocity() +
+                                 linearVelocityAtContacRelativeToCenter[i];
   }
-  impulseContact.x = desiredDeltaVelocity / deltaVelocity;
-  impulseContact.y = 0;
-  return impulseContact;
+  sf::Vector2f contactVelocity =
+      linearVelocityAtContact[0] - linearVelocityAtContact[1];
+  float impulseForce = dot(contactVelocity, contactNormal);
+  angularSpeed[0] = cross(relativeContactPosition[0], contactNormal) *
+                    bodies[0].get().getInverseInertia();
+  angularSpeed[1] = cross(relativeContactPosition[1], contactNormal) *
+                    bodies[1].get().getInverseInertia();
+  float angularEffect =
+      dot(perpendicular(relativeContactPosition[0]) * angularSpeed[0],
+          contactNormal) +
+      dot(perpendicular(relativeContactPosition[1]) * angularSpeed[1],
+          contactNormal);
+  impulseForce =
+      impulseForce * (-1.0f - resitution) / (totalInverseMass + angularEffect);
+  return impulseForce * contactNormal;
+}
+sf::Vector2f Contact::calculateFrictionlessImpulseSphereSphere() {
+  sf::Vector2f impulse;
+  std::array<sf::Vector2f, 2> linearVelocityAtContact;
+  std::array<sf::Vector2f, 2> relativeContactPosition;
+  relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
+  relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
+
+  float totalInverseMass =
+      bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
+  for (int i = 0; i < 2; i++) {
+    linearVelocityAtContact[i] = bodies[i].get().getVelocity();
+  }
+  sf::Vector2f contactVelocity =
+      linearVelocityAtContact[0] - linearVelocityAtContact[1];
+  float impulseForce = dot(contactVelocity, contactNormal);
+  impulseForce = impulseForce * (-1.0f - resitution) / (totalInverseMass);
+  return impulseForce * contactNormal;
 }
 void Contact::applyVelocityChange() {
   std::array<sf::Vector2f, 2> velocityChange;
-  std::array<float, 2> rotationChange;
-  calculateDesiredVelocty();
-  sf::Vector2f impulseContact = calculateFrictionlessImpulse();
-  sf::Vector2f impulse = connectToWorld(impulseContact);
+  std::array<float, 2> angularVelocityChange;
+  sf::Vector2f impulse = calculateFrictionlessImpulse();
   float impulsiveTorque =
       cross(contactPoint - bodies[0].get().getPosition(), impulse);
-  rotationChange[0] = bodies[0].get().getInverseInertia() * impulsiveTorque;
+  angularVelocityChange[0] =
+      bodies[0].get().getInverseInertia() * impulsiveTorque;
   velocityChange[0] = impulse * bodies[0].get().getInverseMass();
   bodies[0].get().addVelocity(velocityChange[0]);
-  bodies[0].get().addAngularVelocity(rotationChange[0]);
-  if (bodies[1].get().getPosition() != emptyBody.getPosition()) {
+  bodies[0].get().addAngularVelocity(angularVelocityChange[0]);
 
-    float impulsiveTorque2 =
-        cross(contactPoint - bodies[1].get().getPosition(), -impulse);
-    rotationChange[1] = bodies[1].get().getInverseInertia() * impulsiveTorque2;
-    velocityChange[1] = -impulse * bodies[1].get().getInverseMass();
-    bodies[1].get().addVelocity(velocityChange[1]);
-    bodies[1].get().addAngularVelocity(rotationChange[1]);
-  }
+  float impulsiveTorque2 =
+      cross(contactPoint - bodies[1].get().getPosition(), -impulse);
+  angularVelocityChange[1] =
+      bodies[1].get().getInverseInertia() * impulsiveTorque2;
+  velocityChange[1] = -impulse * bodies[1].get().getInverseMass();
+  bodies[1].get().addVelocity(velocityChange[1]);
+  bodies[1].get().addAngularVelocity(angularVelocityChange[1]);
 }
-void Contact::applyImpulse(float deltaTime) {
-  sf::Vector2f impulseContact = calculateFrictionlessImpulse();
-  sf::Vector2f impulse = connectToWorld(impulseContact);
-  float impulsiveTorque =
-      cross(contactPoint - bodies[0].get().getPosition(), impulse);
-  bodies[0].get().addForceAtPoint(impulse / deltaTime, contactPoint);
-  if (bodies[1].get().getPosition() != emptyBody.getPosition()) {
-    bodies[1].get().addForceAtPoint(-impulse / deltaTime, contactPoint);
-  }
+void Contact::applyVelocityChangeSphereSphere() {
+  std::array<sf::Vector2f, 2> velocityChange;
+  sf::Vector2f impulse = calculateFrictionlessImpulseSphereSphere();
+  velocityChange[0] = impulse * bodies[0].get().getInverseMass();
+  bodies[0].get().addVelocity(velocityChange[0]);
+  velocityChange[1] = -impulse * bodies[1].get().getInverseMass();
+  bodies[1].get().addVelocity(velocityChange[1]);
+}
+
+void Contact::applyPositionChange(std::array<sf::Vector2f, 2> &displacement) {
+  float totalInverseMass =
+      bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
+  displacement[0] = contactNormal * penetrationDepth *
+                    bodies[0].get().getInverseMass() / totalInverseMass;
+  displacement[1] = -contactNormal * penetrationDepth *
+                    bodies[1].get().getInverseMass() / totalInverseMass;
+  bodies[0].get().addDisplacement(displacement[0]);
+  bodies[1].get().addDisplacement(displacement[1]);
 }
