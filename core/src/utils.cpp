@@ -19,8 +19,9 @@ sf::Vector2f elementViseMultipication(const sf::Vector2f &vectorA,
 float magnitude(const sf::Vector2f &a) { return std::sqrt(dot(a, a)); }
 sf::Vector2f normalise(sf::Vector2f a) {
   float mag = magnitude(a);
-  if (mag == 0)
-    return sf::Vector2f(0, 0);
+  if (mag == 0) {
+    return {0, 0};
+}
   a.x /= mag;
   a.y /= mag;
   return a;

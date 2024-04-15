@@ -6,6 +6,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Window/Event.hpp>
+#include <SFML/Window/Keyboard.hpp>
 #include <chrono>
 #include <iostream>
 
@@ -68,7 +70,7 @@ int main() {
   Box box2(400, 100, 100, 50);
   box1.setInverseMass(0.05f);
   box2.setInverseMass(0.05f);
-  // box1.setOrientation(M_PI / 3);
+  box1.setOrientation(M_PI / 3);
   boxes.push_back(box1);
   boxes.push_back(box2);
   box1.setFillColor(sf::Color::Red);
@@ -112,43 +114,66 @@ int main() {
       }
     }
     // std::cout << "Number of circles: " << circles.size() << "\n";
-    int subStep = 10;
+    int subStep = 1;
 
     sf::CircleShape cpx(5.f);
     std::array<sf::Vertex, 2> line;
-    for (int a = 0; a < subStep; a++) {
+    // for (int a = 0; a < subStep; a++) {
 
-      for (int i = 0; i < boxes.size(); i++) {
-        for (int j = i + 1; j < boxes.size(); j++) {
+    for (int i = 0; i < boxes.size(); i++) {
+      for (int j = i + 1; j < boxes.size(); j++) {
 
-          if (Collider::rectangleAndRectangle(boxes[i], boxes[j], cd)) {
-            boxes[i].setFillColor(sf::Color::Red);
-            boxes[j].setFillColor(sf::Color::Red);
-            // std::cout << con.getPosition().x << "||" << con.getPosition().y
-            //           << "\n";
-            Box boxA = boxes[i];
-            Box boxB = boxes[j];
-            std::array<sf::Vector2f, 4> verticesB = boxB.getVertices();
-            // check if each vertex of B is inside A.
-            for (auto vertex : verticesB) {
-              if (boxA.isPointIn(vertex)) {
-                cpx.setFillColor(sf::Color::Green);
-                cpx.setOrigin(5, 5);
-                cpx.setPosition(vertex);
-              }
+        if (Collider::rectangleAndRectangle(boxes[i], boxes[j], cd)) {
+          boxes[i].setFillColor(sf::Color::Red);
+          boxes[j].setFillColor(sf::Color::Red);
+          // std::cout << con.getPosition().x << "||" << con.getPosition().y
+          //           << "\n";
+          Box boxA = boxes[i];
+          Box boxB = boxes[j];
+          std::array<sf::Vector2f, 4> verticesB = boxB.getVertices();
+          // check if each vertex of B is inside A.
+          for (auto vertex : verticesB) {
+            if (boxA.isPointIn(vertex)) {
+              cpx.setFillColor(sf::Color::Green);
+              cpx.setOrigin(5, 5);
+              cpx.setPosition(vertex);
             }
-            showVertices(window, verticesB);
-            showVertices(window, boxA.getVertices(), sf::Color::Blue);
-            line = showConnectionNormal(
-                window, (cd.contacts.end() - 1)->getContactPoint(),
-                (cd.contacts.end() - 1)->getContactNormal());
           }
+          showVertices(window, verticesB);
+          showVertices(window, boxA.getVertices(), sf::Color::Blue);
+          line = showConnectionNormal(
+              window, (cd.contacts.end() - 1)->getContactPoint(),
+              (cd.contacts.end() - 1)->getContactNormal());
+          // }
           //   Collider::rectangleAndRectangle(boxes[j], boxes[i], cd);
         }
       }
-      contactResolver.resolveContacts(cd, deltaTime / subStep);
-      cd.clear();
+      // draw all contacts
+      for (auto cons : cd.contacts) {
+        sf::CircleShape ax(5.f);
+        ax.setFillColor(sf::Color::Green);
+        ax.setPosition(cons.getContactPoint());
+        ax.setOrigin(5, 5);
+        window.draw(ax);
+        std::array<sf::Vertex, 2> line = {
+            sf::Vertex(cons.getContactPoint(), sf::Color::Green),
+            sf::Vertex(cons.getContactPoint() +
+                           cons.getContactNormal() * cons.getPenetrationDepth(),
+                       sf::Color::Green),
+        };
+        window.draw(line.data(), 2, sf::Lines);
+      }
+      while (window.pollEvent(event)) {
+        if (event.type == sf::Event::KeyPressed) {
 
+          if (event.key.code == sf::Keyboard::W) {
+
+            contactResolver.resolveContacts(cd, deltaTime);
+          }
+        }
+      }
+      // contactResolver.resolveContacts(cd, deltaTime / subStep);
+      cd.clear();
       boxes[3].addVelocity(userAdedVelocity);
       for (auto &box : boxes) {
 
@@ -158,12 +183,15 @@ int main() {
     }
 
     for (auto &box : boxes) {
+      box.setFillColor(sf::Color::Transparent);
+      box.setOutlineColor(sf::Color::Red);
+      box.setOutlineThickness(2.F);
       window.draw(box);
       box.update();
     }
 
     window.draw(cpx);
-    window.draw(line.data(), line.size(), sf::Lines);
+    // window.draw(line.data(), line.size(), sf::Lines);
 
     window.display();
     window.clear(sf::Color::Black);

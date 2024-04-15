@@ -8,6 +8,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/Graphics/ConvexShape.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <chrono>
 #include <iostream>
@@ -30,6 +31,7 @@ std::array<sf::Vertex, 2> showConnectionNormal(sf::RenderWindow &window,
       sf::Vertex(pos, sf::Color::Green),
       sf::Vertex(pos + normal * 100.f, sf::Color::Green),
   };
+  window.draw(line.data(), 2, sf::Lines);
   return line;
 }
 int main() {
@@ -47,11 +49,14 @@ int main() {
 
   Box box1(400, 100, 100, 50);
   Box box2(300, 200, 100, 50);
+  Polygon pol({sf::Vector2f{10, 10}, sf::Vector2f{20, 30}, sf::Vector2f{40, 30},
+               sf::Vector2f{30, 10}});
 
   box1.setInverseMass(0.05f);
   Circle circle(200, 200, 50.f);
 
   Box orvect(400, 300, 20, 5);
+  box1.setOrientation(std::numbers::pi / 3);
   CollisionData cd;
 
   std::chrono::steady_clock::time_point lastFrameTime =
@@ -112,15 +117,29 @@ int main() {
     std::cout << spRectangle.x << " " << spRectangle.y << "\n";
     Circle sp(spRectangle.x, spRectangle.y, 5.f);
     Circle spc(spCircle.x, spCircle.y, 5.f);
-    bool isCollide = Collider::GJKintersectionPP(box1, box2);
+    bool isCollide = Collider::GJKintersectionPP(box1, box2, cd);
     if (isCollide) {
-      box2.setFillColor(sf::Color::Red);
+      box1.setFillColor(sf::Color::Red);
     } else {
-      box2.setFillColor(sf::Color::White);
+      box1.setFillColor(sf::Color::White);
     }
     orvect.update();
+    box2.setFillColor(sf::Color::Transparent);
+    box2.setOutlineColor(sf::Color::Blue);
+    box2.setOutlineThickness(1.f);
     box1.update();
     box2.update();
+    pol.update();
+    pol.setFillColor(sf::Color::Red);
+    std::cout << pol.sf::ConvexShape::getPosition().x
+              << pol.sf::ConvexShape::getPosition().y << "\n";
+    for (auto cons : cd.contacts) {
+      showConnectionNormal(window, box2.RigidBody2D::getPosition(),
+                           cons.getContactNormal());
+      std::cout << cons.getContactNormal().x << " " << cons.getContactNormal().y
+                << " lala\n";
+    }
+    window.draw(pol);
     window.draw(sp);
     window.draw(spc);
     window.draw(box2);
@@ -132,6 +151,7 @@ int main() {
 
     window.display();
     window.clear(sf::Color::Black);
+    cd.clear();
   }
   return 0;
 }

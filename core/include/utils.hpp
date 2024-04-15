@@ -2,6 +2,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
 #include <iostream>
+#include <numbers>
 float cross(const sf::Vector2f &, const sf::Vector2f &);
 float dot(const sf::Vector2f &, const sf::Vector2f &);
 float absDot(const sf::Vector2f &, const sf::Vector2f &);

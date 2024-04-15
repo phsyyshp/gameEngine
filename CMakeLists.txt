@@ -25,7 +25,7 @@ core/src/world.cpp)
 
 add_executable(ColliderSphereDemo ${COLLIDER_SPHERE_DEMO_SOURCES})
 target_link_libraries(ColliderSphereDemo PRIVATE sfml-graphics sfml-window sfml-system)
-target_compile_features(ColliderSphereDemo PRIVATE cxx_std_17)
+target_compile_features(ColliderSphereDemo PRIVATE cxx_std_20)
 
 # Add the include directory
 target_include_directories(ColliderSphereDemo PRIVATE core/include)
@@ -46,7 +46,7 @@ core/src/world.cpp)
 
 add_executable(collisionTest ${CollisionTestDemo_SOURCES})
 target_link_libraries(collisionTest PRIVATE sfml-graphics sfml-window sfml-system)
-target_compile_features(collisionTest PRIVATE cxx_std_17)
+target_compile_features(collisionTest PRIVATE cxx_std_20)
 
 # Add the include directory
 target_include_directories(collisionTest PRIVATE core/include)
@@ -65,7 +65,7 @@ core/src/world.cpp)
 
 add_executable(gjkTests ${gjkTest_SOURCES})
 target_link_libraries(gjkTests PRIVATE sfml-graphics sfml-window sfml-system)
-target_compile_features(gjkTests PRIVATE cxx_std_17)
+target_compile_features(gjkTests PRIVATE cxx_std_20)
 
 # Add the include directory
 target_include_directories(gjkTests PRIVATE core/include)

@@ -70,7 +70,7 @@ int main(int argc, char *argv[]) {
       if (event.type == sf::Event::MouseButtonPressed) {
         if (event.mouseButton.button == sf::Mouse::Left) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-          Circle circle(mousePos.x, mousePos.y, 10);
+          Circle circle(mousePos.x, mousePos.y, 30);
           float density = 1.0f;
           float mass = density * 3.14159f * 10 * 10;
 

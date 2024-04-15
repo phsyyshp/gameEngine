@@ -2,6 +2,7 @@
 #include "rigidBody2D.hpp"
 #include "utils.hpp"
 #include <SFML/Graphics.hpp>
+#include <SFML/Graphics/ConvexShape.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
 #include <limits>
@@ -82,4 +83,32 @@ private:
   sf::Vector2f halfSize;
   float width;
   float height;
+};
+
+class Polygon : public RigidBody2D, public sf::ConvexShape {
+public:
+  explicit Polygon(const std::vector<sf::Vector2f> &v)
+      : vertices(v), RigidBody2D(0, 0) {
+    setPointCount(vertices.size());
+    sf::Vector2f center = {0, 0};
+    int i = 0;
+    for (auto &vertex : vertices) {
+      center += vertex;
+      setPoint(i, vertex);
+      i++;
+    }
+    center = center * 1.f / static_cast<float>(vertices.size());
+
+    RigidBody2D::position = {center.x, center.y};
+    setPosition(center);
+    setOrigin(center - vertices[0]);
+    setRotation(getOrientation() / 3.14159f * 180);
+  }
+  void update() {
+    setPosition(position.x, position.y);
+    setRotation(orientation / M_PIf * 180.f);
+  }
+
+private:
+  std::vector<sf::Vector2f> vertices;
 };

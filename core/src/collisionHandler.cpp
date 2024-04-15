@@ -2,6 +2,7 @@
 #include "contact.hpp"
 #include <SFML/System/Vector2.hpp>
 #include <cfloat>
+#include <limits>
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                CollisionData &collisionData) {
   if (!(a.isAwake()) && !(b.isAwake())) {
@@ -138,7 +139,7 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
     if (boxA.isPointIn(vertex)) {
       contact.setContactPoint(vertex);
       isTouch = true;
-      if (!boxA.isPointIn(normal * (1.001f) + vertex)) {
+      if (boxB.isPointIn(normal * (1.001f) + vertex)) {
         normal = -normal;
       }
       contact.setContactNormal(normal);
@@ -151,22 +152,15 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
     if (boxB.isPointIn(vertex)) {
       isTouch2 = true;
       contact2.setContactPoint(vertex);
-      contact2.setPenetrationDepth(0 * minOverlap);
-      if (boxB.isPointIn(normal * (1.001f) + vertex)) {
+      contact2.setPenetrationDepth(minOverlap);
+      if (dot(distanceVector, normal) < 0) {
         normal = -normal;
       }
       contact2.setContactNormal(normal);
       collisionData.contacts.push_back(contact2);
     }
   }
-  // if (isTouch && isTouch2) {
-  //   Contact contact3(boxA, boxB);
-  //   contact3.setContactPoint(
-  //       (contact.getContactPoint() + contact2.getContactPoint()) * 0.5f);
-  //   contact3.setContactNormal(normal);
-  //   contact3.setPenetrationDepth(0 * minOverlap);
-  //   collisionData.contacts.push_back(contact3);
-  // }
+
   return isTouch || isTouch2;
 }
 
@@ -190,7 +184,7 @@ sf::Vector2f Collider::getSupportS(const Circle &circle,
          normalise(direction) * circle.getRadius();
 }
 
-bool Collider::GJKintersectionPP(const Box &shapeA, const Box &shapeB) {
+bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd) {
   sf::Vector2f direction =
       shapeA.RigidBody2D::getPosition() - shapeB.RigidBody2D::getPosition();
   sf::Vector2f pointOnMinkowskiDiffAmB =
@@ -206,9 +200,37 @@ bool Collider::GJKintersectionPP(const Box &shapeA, const Box &shapeB) {
     simplex.push_back(pointOnMinkowskiDiffAmB);
     bool containsOrigin = nearestSimplex(simplex, direction, shapeA, shapeB);
     if (containsOrigin) {
-      return true;
+      containsOrigin = true;
+      break;
     }
   }
+  // here simplex contains origin, and have 3 edges.
+  float minDistance = std::numeric_limits<float>::max();
+  sf::Vector2f minNormal;
+  int minIndex;
+  while (minDistance > 1.5F) {
+    for (int i = 0; i < simplex.size(); i++) {
+      sf::Vector2f sidei = simplex[(i + 1) % simplex.size()] - simplex[i];
+      sf::Vector2f normal = normalise(perpendicular(sidei));
+      float distance = dot(normal, simplex[i]);
+      if (distance < 0) {
+        distance *= -1;
+        normal *= -1.F;
+      }
+      if (minDistance > distance) {
+        minDistance = distance;
+        minNormal = normal;
+        minIndex = (i + 1) % simplex.size();
+      }
+    }
+    sf::Vector2f newVertex =
+        shapeA.getSupport(minNormal) - shapeB.getSupport(-minNormal);
+    simplex.insert(simplex.begin() + minIndex + 1, newVertex);
+  }
+  Contact contact(shapeA, shapeB);
+  contact.setContactNormal(minNormal);
+  contact.setPenetrationDepth(magnitude(simplex[minIndex]));
+  cd.contacts.push_back(contact);
 }
 
 bool Collider::GJKintersectionSP(const Circle &circle,

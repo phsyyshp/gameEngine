@@ -89,10 +89,11 @@ void World::setSleepers() {
 
 void World::showContacts(const CollisionData &cd) {
   for (auto &contact : cd.contacts) {
-    sf::CircleShape ax(5.f);
+    float radius = 2.f;
+    sf::CircleShape ax(radius);
     ax.setFillColor(sf::Color::Green);
     ax.setPosition(contact.getContactPoint());
-    ax.setOrigin(5, 5);
+    ax.setOrigin(radius, radius);
     window->draw(ax);
     std::array<sf::Vertex, 2> line = {
         sf::Vertex(contact.getContactPoint(), sf::Color::Green),
