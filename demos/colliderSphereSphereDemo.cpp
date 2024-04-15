@@ -124,8 +124,8 @@ int main(int argc, char *argv[]) {
 
     frameNo++;
     if (frameNo % 100 == 0) {
-      std::cout << frameDuration * 1000 << " ms " << world.getBodySize()
-                << "\n";
+      // std::cout << frameDuration * 1000 << " ms " << world.getBodySize()
+      // << "\n";
     }
     // std::cout << cd.contacts.size() << "\n";
 

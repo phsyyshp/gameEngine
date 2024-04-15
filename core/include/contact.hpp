@@ -28,15 +28,19 @@ public:
   void setFriction(float);
   void setResitution(float);
 
-  void applyVelocityChange();
+  void applyVelocityChange(float lagrangianMultiplier);
   void applyPositionChange(std::array<sf::Vector2f, 2> &);
   void applyVelocityChangeSphereSphere();
   sf::Vector2f calculateFrictionlessImpulseSphereSphere();
+  float solveContactConstraints(float deltaTime);
+  void setTotalImpulseNormal(float totalImpulseNormal);
+  float getTotalImpulseNormal();
 
 private:
   sf::Vector2f contactPoint;
   sf::Vector2f contactNormal;
-  float penetrationDepth;
+  float normalImpulseSum = 0;
+  float penetrationDepth = 0;
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
   float resitution = 0.5f;
