@@ -1,25 +1,17 @@
 #include "contactResolver.hpp"
+#include "collisionHandler.hpp"
+#include "contact.hpp"
+#include "rigidBody2D.hpp"
+#include <SFML/System/Vector2.hpp>
+#include <array>
+#include <limits>
 
 void ContactResolver::resolveContacts(CollisionData &collisionData,
                                       float deltaTime) {
 
-  resolvePenetration(collisionData);
-  for (auto &contact : collisionData.contacts) {
-    if ((!contact.getBodies()[0].get().isAwake()) &&
-        (!contact.getBodies()[1].get().isAwake())) {
-      continue;
-    }
-    // if (typeid(contact.getBodies()[0].get()) == typeid(Circle) &&
-    //     typeid(contact.getBodies()[1].get()) == typeid(Circle)) {
-    //   contact.applyVelocityChangeSphereSphere();
-    // } else {
-    contact.getBodies()[0].get().wakeUp();
-    contact.getBodies()[1].get().wakeUp();
-
-    contact.applyVelocityChange();
-    // }
-  }
+  sequentialImpulse(collisionData, deltaTime);
 }
+
 void ContactResolver::resolvePenetration(CollisionData &collisionData) {
 
   std::vector<Contact> &contacts = collisionData.contacts;
@@ -60,4 +52,26 @@ void ContactResolver::resolvePenetration(CollisionData &collisionData) {
     // }
     // positionsChecked++;
   }
+}
+void ContactResolver::sequentialImpulse(CollisionData &collisionData,
+                                        float deltaTime) {
+  float totalChange = 0;
+  int i = 10;
+  // std::cout << collisionData.size() << "\n";
+  do {
+    totalChange = 0;
+    for (auto &contact : collisionData.contacts) {
+      float totalImpulseNormal = contact.getTotalImpulseNormal();
+      float lagrangianMultiplier = contact.solveContactConstraints(deltaTime);
+      float oldImpulseNormal = totalImpulseNormal;
+      totalImpulseNormal = std::clamp(lagrangianMultiplier + oldImpulseNormal,
+                                      0.F, std::numeric_limits<float>::max());
+      lagrangianMultiplier = totalImpulseNormal - oldImpulseNormal;
+      contact.setTotalImpulseNormal(totalImpulseNormal);
+      contact.applyVelocityChange(lagrangianMultiplier);
+      totalChange += std::abs(lagrangianMultiplier);
+    }
+    // std::cout << totalChange << "\n";
+    i++;
+  } while (totalChange > 0.001F && i < 100);
 }

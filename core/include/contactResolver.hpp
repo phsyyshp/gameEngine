@@ -6,4 +6,5 @@ public:
   void resolvePenetration(CollisionData &);
   void applyVelocityChange(Contact &contact);
   void applyPositionChange(Contact &contact);
+  void sequentialImpulse(CollisionData &collisionData, float deltaTime);
 };
