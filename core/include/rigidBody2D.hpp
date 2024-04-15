@@ -11,6 +11,9 @@ public:
   float getInverseMass() const;
   float getInverseInertia() const;
   void setInverseMass(float);
+  void setInverseInertia(float);
+  void setOrientation(float);
+  void addDisplacement(const sf::Vector2f &);
   void integrate(float deltaTime);
   void clearAccumulators();
 
@@ -21,19 +24,30 @@ public:
   sf::Vector2f getPosition() const;
   sf::Vector2f getVelocity() const;
   float getAngularVelocity() const;
+  float getOrientation() const;
+  bool isAwake() const;
+  int getAwakeTimer() const;
+  void setAwakeTimer(int);
+  void wakeUp();
+  void sleep();
 
 private:
-  float inverseMass;
-  float angularVelocity = 0;
-  sf::Vector2f forceAccum = {0.f, 0.f};
-  float torqueAccum = 0.f;
-  float angularDamping = 0.f;
-  float linearDamping = 0.f;
-  sf::Vector2f lastFrameAcceleration;
-  float inverseInertia = 1.f;
+  float inverseMass = 0.F;
+  float angularVelocity = 0.F;
+  sf::Vector2f forceAccum = {0.F, 0.F};
+  float torqueAccum = 0.F;
+  float angularDamping = 0.F;
+  float linearDamping = 0.F;
+  sf::Vector2f lastFrameAcceleration = {0.f, 0.f};
+  ;
+  float inverseInertia = 0.F;
+
+  bool isAwake_ = true;
+
+  int isAwakeTimer = 0;
 
 protected:
-  float orientation = 0;
-  sf::Vector2f velocity = {0.f, 0.f};
+  float orientation = 0.F;
+  sf::Vector2f velocity = {0.F, 0.F};
   sf::Vector2f position;
 };

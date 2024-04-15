@@ -3,6 +3,7 @@
 #pragma once
 #include "rigidBody2D.hpp"
 #include "utils.hpp"
+#include <SFML/System/Vector2.hpp>
 
 class Contact {
   static RigidBody2D emptyBody;
@@ -17,21 +18,20 @@ public:
   sf::Vector2f getContactPoint() const;
   sf::Vector2f getContactNormal() const;
   float getPenetrationDepth() const;
-  std::array<std::reference_wrapper<RigidBody2D>, 2> getBodies() const;
+  std::array<std::reference_wrapper<RigidBody2D>, 2> &getBodies();
   float getFriction() const;
   float getResitution() const;
-  float getDesiredDeltaVelocity() const;
   // setters declare:
   void setContactPoint(const sf::Vector2f &);
   void setContactNormal(const sf::Vector2f &);
   void setPenetrationDepth(float);
   void setFriction(float);
   void setResitution(float);
-  void setDesiredDeltaVelocity(float);
-  sf::Vector2f connectToWorld(const sf::Vector2f &connect) const;
 
   void applyVelocityChange();
-  void calculateDesiredVelocty();
+  void applyPositionChange(std::array<sf::Vector2f, 2> &);
+  void applyVelocityChangeSphereSphere();
+  sf::Vector2f calculateFrictionlessImpulseSphereSphere();
 
 private:
   sf::Vector2f contactPoint;
@@ -40,5 +40,4 @@ private:
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
   float resitution = 0.5f;
-  float desiredDeltaVelocity;
 };
