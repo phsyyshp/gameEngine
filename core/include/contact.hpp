@@ -4,6 +4,7 @@
 #include "rigidBody2D.hpp"
 #include "utils.hpp"
 #include <SFML/System/Vector2.hpp>
+#include <array>
 
 class Contact {
   static RigidBody2D emptyBody;
@@ -35,6 +36,8 @@ public:
   float solveContactConstraints(float deltaTime);
   void setTotalImpulseNormal(float totalImpulseNormal);
   float getTotalImpulseNormal();
+  std::array<sf::Vector2f, 2> getRelativeContactPosition();
+  void setRelativeContactPosition(const std::array<sf::Vector2f, 2> &rp) ;
 
 private:
   sf::Vector2f contactPoint;
@@ -44,4 +47,5 @@ private:
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
   float resitution = 0.5f;
+  std::array<sf::Vector2f, 2> relativeContactPosition;
 };

@@ -58,8 +58,8 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
   float totalChange = 0;
   int i = 0;
   // std::cout << collisionData.size() << "\n";
+
   do {
-    totalChange = 0;
     for (auto &contact : collisionData.contacts) {
       float totalImpulseNormal = contact.getTotalImpulseNormal();
       float lagrangianMultiplier = contact.solveContactConstraints(deltaTime);
@@ -69,10 +69,18 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
       lagrangianMultiplier = totalImpulseNormal - oldImpulseNormal;
       contact.setTotalImpulseNormal(totalImpulseNormal);
       contact.applyVelocityChange(lagrangianMultiplier);
-      totalChange += lagrangianMultiplier;
+      totalChange = lagrangianMultiplier;
+      // float v1 = magnitude(contact.getContactNormal() *
+      //                      contact.getBodies()[0].get().getInverseMass() *
+      //                      lagrangianMultiplier);
+      // float v2 = magnitude(-contact.getContactNormal() *
+      //                      contact.getBodies()[1].get().getInverseMass() *
+      //                      lagrangianMultiplier);
+      // totalChange = v1 + v2;
     }
     // std::cout << totalChange << "\n";
     i++;
-  } while (totalChange > 0.001F && i < 30);
-  std::cout << totalChange << "itNo" << i << "\n";
+
+    std::cout << totalChange << "itNo" << i << "\n";
+  } while (totalChange > 0.2F && i < 50);
 }

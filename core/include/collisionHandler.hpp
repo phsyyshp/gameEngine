@@ -1,5 +1,6 @@
 #pragma once
 #include "contact.hpp"
+#include "rigidBody2D.hpp"
 #include "shapes.hpp"
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
@@ -12,9 +13,11 @@ public:
 };
 class Collider {
 public:
-  static bool sphereAndSphere(Circle &, Circle &, CollisionData &);
-  static bool sphereAndRectangle(Circle &, Box &, CollisionData &);
-  static bool rectangleAndRectangle(Box &, Box &, CollisionData &);
+  static bool sphereAndSphere(const Circle &, const Circle &, CollisionData &);
+  static bool sphereAndRectangle(const Circle &, const Box &, CollisionData &);
+  static bool rectangleAndRectangle(const Box &, const Box &, CollisionData &);
+  static bool genericCollision(const RigidBody2D &, const RigidBody2D &,
+                               CollisionData &);
   static sf::Vector2f getSupportP(const std::vector<sf::Vector2f> &vertices,
                                   const sf::Vector2f &direction);
   static sf::Vector2f getSupportS(const Circle &circle,

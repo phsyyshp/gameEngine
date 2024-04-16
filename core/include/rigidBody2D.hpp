@@ -5,6 +5,7 @@ class RigidBody2D {
 
 public:
   RigidBody2D(float x, float y) : position(x, y) {}
+  virtual ~RigidBody2D(){};
 
   void addForce(const sf::Vector2f &);
   // getters

@@ -11,6 +11,13 @@ std::array<std::reference_wrapper<RigidBody2D>, 2> &Contact::getBodies() {
 float Contact::getFriction() const { return friction; }
 float Contact::getResitution() const { return resitution; }
 
+std::array<sf::Vector2f, 2> Contact::getRelativeContactPosition() {
+  return relativeContactPosition;
+}
+void Contact::setRelativeContactPosition(
+    const std::array<sf::Vector2f, 2> &rp) {
+  relativeContactPosition = rp;
+}
 // setters
 void Contact::setContactPoint(const sf::Vector2f &contactPoint_) {
   contactPoint = contactPoint_;
@@ -99,6 +106,7 @@ float Contact::solveContactConstraints(float deltaTime) {
   std::array<float, 2> angularComponent;
 
   relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
+
   relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
   float totalInverseMass =
       bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
@@ -119,9 +127,12 @@ float Contact::solveContactConstraints(float deltaTime) {
       angularComponent[0] + angularComponent[1] + totalInverseMass;
 
   float bias = 0;
-  float beta = 0.05F;
-  beta = 0;
-  bias = -beta / deltaTime * penetrationDepth;
+  float beta = 0.105F;
+  // beta = 0;
+  float slop = 0.02F;
+  // slop = 0;
+  bias = -beta / deltaTime * std::max(penetrationDepth - slop, 0.F);
+
   // bias+=resitution*()
 
   float lagrangianMultiplier =

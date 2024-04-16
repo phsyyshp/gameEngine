@@ -3,7 +3,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <cfloat>
 #include <limits>
-bool Collider::sphereAndSphere(Circle &a, Circle &b,
+bool Collider::sphereAndSphere(const Circle &a, const Circle &b,
                                CollisionData &collisionData) {
   if (!(a.isAwake()) && !(b.isAwake())) {
     return false;
@@ -27,7 +27,7 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
   collisionData.contacts.push_back(contact);
   return true;
 }
-bool Collider::sphereAndRectangle(Circle &circle, Box &box,
+bool Collider::sphereAndRectangle(const Circle &circle, const Box &box,
                                   CollisionData &collisionData) {
   if (!(circle.isAwake()) && !(box.isAwake())) {
     return false;
@@ -66,10 +66,13 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
   contact.setContactNormal(contactNormal);
   contact.setContactPoint(closestPointWorld);
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
+  contact.setRelativeContactPosition(
+      {-circle.getRadius() * contactNormal, closestPointWorld - boxCenter});
   collisionData.contacts.push_back(contact);
+
   return true;
 }
-bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
+bool Collider::rectangleAndRectangle(const Box &boxA, const Box &boxB,
                                      CollisionData &collisionData) {
   if (!(boxA.isAwake()) && !(boxB.isAwake())) {
     return false;
@@ -143,6 +146,8 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
         normal = -normal;
       }
       contact.setContactNormal(normal);
+      contact.setRelativeContactPosition(
+          {vertex - positionA - normal * minOverlap, vertex - positionB});
       collisionData.contacts.push_back(contact);
     }
   }
@@ -156,6 +161,8 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
       if (dot(distanceVector, normal) < 0) {
         normal = -normal;
       }
+      contact.setRelativeContactPosition(
+          {vertex - positionA, vertex - positionB + normal * minOverlap});
       contact2.setContactNormal(normal);
       collisionData.contacts.push_back(contact2);
     }
@@ -164,6 +171,19 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
   return isTouch || isTouch2;
 }
 
+bool Collider::genericCollision(const RigidBody2D &bodyA,
+                                const RigidBody2D &bodyB,
+                                CollisionData &collisionData) {
+  if (const Circle *circleAp = dynamic_cast<const Circle *>(&bodyA)) {
+    if (const Circle *circleBp = dynamic_cast<const Circle *>(&bodyB)) {
+      return sphereAndSphere(*circleAp, *circleBp, collisionData);
+    } else if (const Box *boxBp = dynamic_cast<const Box *>(&bodyB)) {
+      return sphereAndRectangle(*circleAp, *boxBp, collisionData);
+    }
+  }
+  return rectangleAndRectangle(const Box &boxA, const Box &boxB,
+                               CollisionData &collisionData)
+}
 sf::Vector2f Collider::getSupportP(const std::vector<sf::Vector2f> &vertices,
                                    const sf::Vector2f &direction) {
   float maxDot = -FLT_MAX;

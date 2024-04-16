@@ -1,4 +1,5 @@
 #include "world.hpp"
+#include "collisionHandler.hpp"
 #include "rigidBody2D.hpp"
 #include "shapes.hpp"
 void World::startFrame() {
@@ -105,3 +106,9 @@ void World::showContacts(const CollisionData &cd) {
   }
 }
 void World::setWindow(sf::RenderWindow &window) { this->window = &window; }
+
+void World::warmStart(CollisionData &collisionData) {
+  for (auto &contact : collisionData.contacts) {
+    contact
+  }
+}
