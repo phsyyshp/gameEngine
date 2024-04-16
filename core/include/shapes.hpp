@@ -13,6 +13,7 @@ public:
     setPosition(x, y);
     setOrigin(r, r);
   }
+  virtual ~Circle(){};
   // getters
   float getRadius() const { return radius; }
 
@@ -32,6 +33,7 @@ public:
     setRotation(orientation / 3.14159f * 180);
     setInverseInertia(5 * 12 / (w * h * h * h));
   }
+  virtual ~Box(){};
   sf::Vector2f getHalfSize() const { return halfSize; }
   sf::Vector2f getClosestPoint(const sf::Vector2f &point) {
     sf::Vector2f localPoint = point - RigidBody2D::getPosition();

@@ -24,6 +24,7 @@ public:
   void findContacts();
   void resolveCollisions();
   void setSleepers();
+  void warmStart(CollisionData &collisionData);
   // void regiterForceGenerator(ForceGenerator &forceGenerator);
 
   void setWindow(sf::RenderWindow &window);

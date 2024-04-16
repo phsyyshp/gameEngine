@@ -114,7 +114,7 @@ int main() {
       }
     }
     // std::cout << "Number of circles: " << circles.size() << "\n";
-    int subStep = 1;
+    int subStep = 10;
 
     sf::CircleShape cpx(5.f);
     std::array<sf::Vertex, 2> line;
