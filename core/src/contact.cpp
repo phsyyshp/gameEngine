@@ -127,7 +127,7 @@ float Contact::solveContactConstraints(float deltaTime) {
       angularComponent[0] + angularComponent[1] + totalInverseMass;
 
   float bias = 0;
-  float beta = 0.105F;
+  float beta = 0.206F;
   // beta = 0;
   float slop = 0.02F;
   // slop = 0;
@@ -142,3 +142,6 @@ float Contact::solveContactConstraints(float deltaTime) {
       deminator;
   return lagrangianMultiplier;
 }
+
+void Contact::makePersistent() { persistent = true; }
+bool Contact::isPersistent() const { return persistent; }

@@ -12,13 +12,15 @@ void World::runPhysics(float deltaTime, int subStep) {
   for (int i = 0; i < subStep; i++) {
 
     // setSleepers();
-    findContacts();
+    // findContacts();
+    CollisionData collisionData_ = collisionData;
+    warmStart(collisionData_);
 
     contactResolver.resolveContacts(collisionData, deltaTime / subStep);
     if (isDebug) {
       showContacts(collisionData);
     }
-    collisionData.clear();
+    // collisionData.clear();
     for (auto &body : circles) {
       if (body.isAwake()) {
         for (auto &forceGenerator : gravity) {
@@ -63,6 +65,7 @@ void World::findContacts() {
     }
   }
 }
+
 void World::setSleepers() {
   for (auto &body : circles) {
     if (body.isAwake()) {
@@ -88,27 +91,66 @@ void World::setSleepers() {
   }
 }
 
-void World::showContacts(const CollisionData &cd) {
-  for (auto &contact : cd.contacts) {
-    float radius = 2.f;
-    sf::CircleShape ax(radius);
-    ax.setFillColor(sf::Color::Green);
-    ax.setPosition(contact.getContactPoint());
-    ax.setOrigin(radius, radius);
-    window->draw(ax);
-    std::array<sf::Vertex, 2> line = {
-        sf::Vertex(contact.getContactPoint(), sf::Color::Green),
-        sf::Vertex(contact.getContactPoint() +
-                       contact.getContactNormal() * 10.f,
-                   sf::Color::Green),
-    };
-    window->draw(line.data(), 2, sf::Lines);
+void World::showContacts(CollisionData &cd) {
+  for (auto &contactManifold : cd.getContactManifolds()) {
+
+    for (auto &contact : contactManifold.getContacts()) {
+      float radius = 2.f;
+      sf::CircleShape ax(radius);
+      ax.setFillColor(sf::Color::Green);
+      ax.setPosition(contact.getContactPoint());
+      ax.setOrigin(radius, radius);
+      window->draw(ax);
+      std::array<sf::Vertex, 2> line = {
+          sf::Vertex(contact.getContactPoint(), sf::Color::Green),
+          sf::Vertex(contact.getContactPoint() +
+                         contact.getContactNormal() * 10.f,
+                     sf::Color::Green),
+      };
+      window->draw(line.data(), 2, sf::Lines);
+    }
   }
 }
 void World::setWindow(sf::RenderWindow &window) { this->window = &window; }
 
-void World::warmStart(CollisionData &collisionData) {
-  for (auto &contact : collisionData.contacts) {
-    contact
+void World::warmStart(CollisionData &collisionData_) {
+  findContacts();
+  if (collisionData_.isEmpty()) {
+    return;
   }
+
+  // Temporary list to store relevant manifolds
+  std::vector<ContactManifold> relevantManifolds;
+
+  // std::cout << "lala\n";
+
+  for (auto &oldManifold : collisionData_.getContactManifolds()) {
+    CollisionData tempCollisionData;
+    Collider::genericCollision(oldManifold.getContacts()[0].getBodies()[0],
+                               oldManifold.getContacts()[0].getBodies()[1],
+                               tempCollisionData);
+
+    if (tempCollisionData.getContactManifolds().empty()) {
+      continue; // Skip if no collision data was generated
+    }
+
+    ContactManifold &newManifold = tempCollisionData.getContactManifolds()[0];
+    bool keepManifold = false;
+
+    for (size_t i = 0; i < oldManifold.getContacts().size(); i++) {
+      if (magnitude(oldManifold.getContacts()[i].getContactPoint() -
+                    newManifold.getContacts()[i].getContactPoint()) < 0.17F) {
+
+        // std::cout << "lala\n";
+        oldManifold.getContacts()[i].makePersistent();
+        keepManifold = true;
+      }
+    }
+
+    if (keepManifold) {
+      relevantManifolds.push_back(oldManifold); // Keep only relevant manifolds
+    }
+  }
+
+  collisionData.setContactManifolds(relevantManifolds);
 }

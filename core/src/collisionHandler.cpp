@@ -3,7 +3,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <cfloat>
 #include <limits>
-bool Collider::sphereAndSphere(const Circle &a, const Circle &b,
+bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                CollisionData &collisionData) {
   if (!(a.isAwake()) && !(b.isAwake())) {
     return false;
@@ -24,10 +24,12 @@ bool Collider::sphereAndSphere(const Circle &a, const Circle &b,
   contact.setContactNormal(normal);
   contact.setContactPoint(positionA - normal * a.getRadius());
   contact.setPenetrationDepth(a.getRadius() + b.getRadius() - distance);
-  collisionData.contacts.push_back(contact);
+  ContactManifold contactManifold;
+  contactManifold.push_back(contact);
+  collisionData.push_back(contactManifold);
   return true;
 }
-bool Collider::sphereAndRectangle(const Circle &circle, const Box &box,
+bool Collider::sphereAndRectangle(Circle &circle, Box &box,
                                   CollisionData &collisionData) {
   if (!(circle.isAwake()) && !(box.isAwake())) {
     return false;
@@ -68,11 +70,12 @@ bool Collider::sphereAndRectangle(const Circle &circle, const Box &box,
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
   contact.setRelativeContactPosition(
       {-circle.getRadius() * contactNormal, closestPointWorld - boxCenter});
-  collisionData.contacts.push_back(contact);
-
+  ContactManifold contactManifold;
+  contactManifold.push_back(contact);
+  collisionData.push_back(contactManifold);
   return true;
 }
-bool Collider::rectangleAndRectangle(const Box &boxA, const Box &boxB,
+bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
                                      CollisionData &collisionData) {
   if (!(boxA.isAwake()) && !(boxB.isAwake())) {
     return false;
@@ -138,6 +141,7 @@ bool Collider::rectangleAndRectangle(const Box &boxA, const Box &boxB,
   bool isTouch = false;
   bool isTouch2 = false;
 
+  ContactManifold contactManifold;
   for (auto vertex : verticesB) {
     if (boxA.isPointIn(vertex)) {
       contact.setContactPoint(vertex);
@@ -148,7 +152,7 @@ bool Collider::rectangleAndRectangle(const Box &boxA, const Box &boxB,
       contact.setContactNormal(normal);
       contact.setRelativeContactPosition(
           {vertex - positionA - normal * minOverlap, vertex - positionB});
-      collisionData.contacts.push_back(contact);
+      contactManifold.push_back(contact);
     }
   }
 
@@ -164,25 +168,24 @@ bool Collider::rectangleAndRectangle(const Box &boxA, const Box &boxB,
       contact.setRelativeContactPosition(
           {vertex - positionA, vertex - positionB + normal * minOverlap});
       contact2.setContactNormal(normal);
-      collisionData.contacts.push_back(contact2);
+      contactManifold.push_back(contact2);
     }
   }
-
+  collisionData.push_back(contactManifold);
   return isTouch || isTouch2;
 }
 
-bool Collider::genericCollision(const RigidBody2D &bodyA,
-                                const RigidBody2D &bodyB,
+bool Collider::genericCollision(RigidBody2D &bodyA, RigidBody2D &bodyB,
                                 CollisionData &collisionData) {
-  if (const Circle *circleAp = dynamic_cast<const Circle *>(&bodyA)) {
-    if (const Circle *circleBp = dynamic_cast<const Circle *>(&bodyB)) {
+  if (Circle *circleAp = dynamic_cast<Circle *>(&bodyA)) {
+    if (Circle *circleBp = dynamic_cast<Circle *>(&bodyB)) {
       return sphereAndSphere(*circleAp, *circleBp, collisionData);
-    } else if (const Box *boxBp = dynamic_cast<const Box *>(&bodyB)) {
-      return sphereAndRectangle(*circleAp, *boxBp, collisionData);
     }
+    Box *boxBp = dynamic_cast<Box *>(&bodyB);
+    return sphereAndRectangle(*circleAp, *boxBp, collisionData);
   }
-  return rectangleAndRectangle(const Box &boxA, const Box &boxB,
-                               CollisionData &collisionData)
+  return rectangleAndRectangle(*dynamic_cast<Box *>(&bodyA),
+                               *dynamic_cast<Box *>(&bodyB), collisionData);
 }
 sf::Vector2f Collider::getSupportP(const std::vector<sf::Vector2f> &vertices,
                                    const sf::Vector2f &direction) {
@@ -250,7 +253,9 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd) {
   Contact contact(shapeA, shapeB);
   contact.setContactNormal(minNormal);
   contact.setPenetrationDepth(magnitude(simplex[minIndex]));
-  cd.contacts.push_back(contact);
+  ContactManifold contactManifold;
+  contactManifold.push_back(contact);
+  cd.push_back(contactManifold);
 }
 
 bool Collider::GJKintersectionSP(const Circle &circle,
