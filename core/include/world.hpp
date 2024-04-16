@@ -28,7 +28,8 @@ public:
   // void regiterForceGenerator(ForceGenerator &forceGenerator);
 
   void setWindow(sf::RenderWindow &window);
-  void showContacts(const CollisionData &cd);
+  void showContacts(CollisionData &cd);
+  void findContactsWarmStart();
   sf::RenderWindow *window;
 
 private:

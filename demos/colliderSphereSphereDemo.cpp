@@ -35,6 +35,11 @@ int main(int argc, char *argv[]) {
 
   mcirc2.setPointCount(200);
 
+  Box box(200, 500, 200, 25);
+  float density = 0.5f;
+  float mass = density * 200 * 25;
+  box.setInverseMass(1 / mass);
+  // world.registerBody(box);
   //   mcirc2.setInverseMass(0.05);
   //   mcirc.addVelocity({3000.f, 0.f});
   //   mcirc2.addVelocity({-3000.f, 0.f});
@@ -89,7 +94,7 @@ int main(int argc, char *argv[]) {
       }
     }
     // std::cout << "Number of circles: " << circles.size() << "\n";
-    int subStep = 10;
+    int subStep = 1;
     world.runPhysics(deltaTime, subStep);
     for (auto &circle : world.getCircles()) {
       window.draw(circle);

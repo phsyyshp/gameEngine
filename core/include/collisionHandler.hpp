@@ -4,20 +4,46 @@
 #include "shapes.hpp"
 #include <SFML/System/Vector2.hpp>
 #include <cmath>
+class ContactManifold {
+public:
+  ContactManifold() {}
+  void push_back(const Contact &contact) { contacts.push_back(contact); }
+  std::vector<Contact> &getContacts() { return contacts; }
+
+private:
+  std::vector<Contact> contacts;
+};
 class CollisionData {
 public:
-  CollisionData() { contacts.reserve(256); }
-  std::vector<Contact> contacts;
-  void clear() { contacts.clear(); }
-  [[nodiscard]] size_t size() const { return contacts.size(); }
+  CollisionData() { contactManifolds.reserve(256); }
+
+  // Getters;
+  std::vector<ContactManifold> &getContactManifolds() {
+    return contactManifolds;
+  }
+  [[nodiscard]] size_t size() const { return contactManifolds.size(); }
+
+  // Modifiers;
+  void push_back(const ContactManifold &contactManifold) {
+    contactManifolds.push_back(contactManifold);
+  }
+  void clear() { contactManifolds.clear(); }
+  bool isEmpty() { return contactManifolds.empty(); }
+  void
+  setContactManifolds(const std::vector<ContactManifold> &contactManifolds) {
+    this->contactManifolds = contactManifolds;
+  }
+
+private:
+  std::vector<ContactManifold> contactManifolds;
 };
+
 class Collider {
 public:
-  static bool sphereAndSphere(const Circle &, const Circle &, CollisionData &);
-  static bool sphereAndRectangle(const Circle &, const Box &, CollisionData &);
-  static bool rectangleAndRectangle(const Box &, const Box &, CollisionData &);
-  static bool genericCollision(const RigidBody2D &, const RigidBody2D &,
-                               CollisionData &);
+  static bool sphereAndSphere(Circle &, Circle &, CollisionData &);
+  static bool sphereAndRectangle(Circle &, Box &, CollisionData &);
+  static bool rectangleAndRectangle(Box &, Box &, CollisionData &);
+  static bool genericCollision(RigidBody2D &, RigidBody2D &, CollisionData &);
   static sf::Vector2f getSupportP(const std::vector<sf::Vector2f> &vertices,
                                   const sf::Vector2f &direction);
   static sf::Vector2f getSupportS(const Circle &circle,

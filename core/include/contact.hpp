@@ -37,7 +37,9 @@ public:
   void setTotalImpulseNormal(float totalImpulseNormal);
   float getTotalImpulseNormal();
   std::array<sf::Vector2f, 2> getRelativeContactPosition();
-  void setRelativeContactPosition(const std::array<sf::Vector2f, 2> &rp) ;
+  void setRelativeContactPosition(const std::array<sf::Vector2f, 2> &rp);
+  void makePersistent();
+  bool isPersistent() const;
 
 private:
   sf::Vector2f contactPoint;
@@ -48,4 +50,5 @@ private:
   float friction;
   float resitution = 0.5f;
   std::array<sf::Vector2f, 2> relativeContactPosition;
+  bool persistent = false;
 };
