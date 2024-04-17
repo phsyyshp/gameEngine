@@ -219,13 +219,16 @@ sf::Vector2f Collider::getSupportS(const Circle &circle,
 
 bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
                                  sf::RenderWindow *window) {
-  // Step1. Gjk(Gilbert-Johnson-Keerthi) algorithm;
+  // Step 1. Gjk(Gilbert-Johnson-Keerthi) algorithm;
+
+  // Step 1a
   sf::Vector2f direction =
       shapeA.RigidBody2D::getPosition() - shapeB.RigidBody2D::getPosition();
   sf::Vector2f pointOnMinkowskiDiffAmB =
       shapeA.getSupport(direction) - shapeB.getSupport(-direction);
-  direction = -pointOnMinkowskiDiffAmB;
   std::vector<sf::Vector2f> simplex{pointOnMinkowskiDiffAmB};
+  // Step 1b..z
+  direction = -pointOnMinkowskiDiffAmB;
   while (true) {
     pointOnMinkowskiDiffAmB =
         shapeA.getSupport(direction) - shapeB.getSupport(-direction);
@@ -239,20 +242,24 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
       break;
     }
   }
+
   // Step 2. EPA (Expanding Polytope Algorithm);
   //  here simplex contains origin, and have 3 edges.
   float minDistance = std::numeric_limits<float>::max();
   sf::Vector2f minNormal{0.F, 0.F};
   int minIndex = 0;
   while (minDistance == std::numeric_limits<float>::max()) {
+
     for (int i = 0; i < simplex.size(); i++) {
       sf::Vector2f sidei = simplex[(i + 1) % simplex.size()] - simplex[i];
       sf::Vector2f normal = normalise(perpendicular(sidei));
       float distance = dot(normal, simplex[i]);
+
       if (distance < 0) {
         distance *= -1.F;
         normal *= -1.F;
       }
+
       if (minDistance > distance) {
         minDistance = distance;
         minNormal = normal;
@@ -268,7 +275,6 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
     }
   }
   // minNormal = (minDistance + 0.001F) * minNormal;
-  std::cout << "lal" << minNormal.x << " " << minNormal.y << "\n";
   // Draw the simplex
 
   for (int i = 0; i < simplex.size(); i++) {
