@@ -1,6 +1,9 @@
 #include "collisionHandler.hpp"
 #include "contact.hpp"
+#include <SFML/Graphics/CircleShape.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <SFML/Window/Event.hpp>
 #include <cfloat>
 #include <limits>
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
@@ -165,7 +168,14 @@ bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
       if (dot(distanceVector, normal) < 0) {
         normal = -normal;
       }
-      contact.setRelativeContactPosition(
+      if (boxB.isPointIn(vertex + normal * minOverlap)) {
+        contact2.setPenetrationDepth(minOverlap);
+
+      } else {
+
+        contact2.setPenetrationDepth(minOverlap);
+      }
+      contact2.setRelativeContactPosition(
           {vertex - positionA, vertex - positionB + normal * minOverlap});
       contact2.setContactNormal(normal);
       contactManifold.push_back(contact2);
@@ -207,7 +217,9 @@ sf::Vector2f Collider::getSupportS(const Circle &circle,
          normalise(direction) * circle.getRadius();
 }
 
-bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd) {
+bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
+                                 sf::RenderWindow *window) {
+  // Step1. Gjk(Gilbert-Johnson-Keerthi) algorithm;
   sf::Vector2f direction =
       shapeA.RigidBody2D::getPosition() - shapeB.RigidBody2D::getPosition();
   sf::Vector2f pointOnMinkowskiDiffAmB =
@@ -227,17 +239,18 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd) {
       break;
     }
   }
-  // here simplex contains origin, and have 3 edges.
+  // Step 2. EPA (Expanding Polytope Algorithm);
+  //  here simplex contains origin, and have 3 edges.
   float minDistance = std::numeric_limits<float>::max();
-  sf::Vector2f minNormal;
-  int minIndex;
-  while (minDistance > 1.5F) {
+  sf::Vector2f minNormal{0.F, 0.F};
+  int minIndex = 0;
+  while (minDistance == std::numeric_limits<float>::max()) {
     for (int i = 0; i < simplex.size(); i++) {
       sf::Vector2f sidei = simplex[(i + 1) % simplex.size()] - simplex[i];
       sf::Vector2f normal = normalise(perpendicular(sidei));
       float distance = dot(normal, simplex[i]);
       if (distance < 0) {
-        distance *= -1;
+        distance *= -1.F;
         normal *= -1.F;
       }
       if (minDistance > distance) {
@@ -248,11 +261,40 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd) {
     }
     sf::Vector2f newVertex =
         shapeA.getSupport(minNormal) - shapeB.getSupport(-minNormal);
-    simplex.insert(simplex.begin() + minIndex + 1, newVertex);
+    float supportDistance = dot(minNormal, newVertex);
+    if (std::abs(supportDistance - minDistance) > 0.001F) {
+      minDistance = std::numeric_limits<float>::max();
+      simplex.insert(simplex.begin() + minIndex, newVertex);
+    }
   }
+  // minNormal = (minDistance + 0.001F) * minNormal;
+  std::cout << "lal" << minNormal.x << " " << minNormal.y << "\n";
+  // Draw the simplex
+
+  for (int i = 0; i < simplex.size(); i++) {
+    // window->clear();
+    sf::Vertex line[] = {
+        sf::Vertex(simplex[i], sf::Color::Red),
+        sf::Vertex(simplex[(i + 1) % simplex.size()], sf::Color::Red)};
+    window->draw(line, 2, sf::Lines);
+  }
+  std::array<sf::Vector2f, 4> verticesA = shapeA.getVertices();
+  std::array<sf::Vector2f, 4> verticesB = shapeB.getVertices();
+  for (int i = 0; i < 4; i++) {
+    for (int j = 0; j < 4; j++) {
+      sf::Vector2f mDiff = verticesA[i] - verticesB[j];
+      sf::CircleShape circle(2.F);
+      circle.setPosition(mDiff);
+
+      window->draw(circle);
+    }
+  }
+
   Contact contact(shapeA, shapeB);
   contact.setContactNormal(minNormal);
-  contact.setPenetrationDepth(magnitude(simplex[minIndex]));
+  // contact.setPenetrationDepth(magnitude(simplex[minIndex]));
+  contact.setPenetrationDepth(minDistance);
+
   ContactManifold contactManifold;
   contactManifold.push_back(contact);
   cd.push_back(contactManifold);

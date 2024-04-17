@@ -29,7 +29,7 @@ std::array<sf::Vertex, 2> showConnectionNormal(sf::RenderWindow &window,
                                                const sf::Vector2f &normal) {
   std::array<sf::Vertex, 2> line = {
       sf::Vertex(pos, sf::Color::Green),
-      sf::Vertex(pos + normal * 100.f, sf::Color::Green),
+      sf::Vertex(pos + normal, sf::Color::Green),
   };
   window.draw(line.data(), 2, sf::Lines);
   return line;
@@ -39,6 +39,9 @@ int main() {
   sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
                           sf::Style::Default);
   // window.setFramerateLimit(60);
+  sf::Vector2u size = window.getSize();
+  sf::View view(sf::Vector2f(0, 0), sf::Vector2f(size.x, size.y));
+  window.setView(view);
   float deltaTime = 0.001f;
   float frameDuration;
   float timeScale = 1;
@@ -47,13 +50,13 @@ int main() {
 
   ContactResolver contactResolver;
 
-  Box box1(400, 100, 100, 50);
-  Box box2(300, 200, 100, 50);
+  Box box1(200, 100, 100, 50);
+  Box box2(100, 200, 100, 50);
   Polygon pol({sf::Vector2f{10, 10}, sf::Vector2f{20, 30}, sf::Vector2f{40, 30},
                sf::Vector2f{30, 10}});
 
   box1.setInverseMass(0.05f);
-  Circle circle(200, 200, 50.f);
+  Circle circle(0, 0, 5.f);
 
   Box orvect(400, 300, 20, 5);
   box1.setOrientation(std::numbers::pi / 3);
@@ -114,10 +117,10 @@ int main() {
     sf::Vector2f spRectangle = Collider::getSupportP(vertices, orvec);
     sf::Vector2f spCircle = Collider::getSupportS(circle, orvec);
 
-    std::cout << spRectangle.x << " " << spRectangle.y << "\n";
+    // std::cout << spRectangle.x << " " << spRectangle.y << "\n";
     Circle sp(spRectangle.x, spRectangle.y, 5.f);
     Circle spc(spCircle.x, spCircle.y, 5.f);
-    bool isCollide = Collider::GJKintersectionPP(box1, box2, cd);
+    bool isCollide = Collider::GJKintersectionPP(box1, box2, cd, &window);
     if (isCollide) {
       box1.setFillColor(sf::Color::Red);
     } else {
@@ -131,13 +134,19 @@ int main() {
     box2.update();
     pol.update();
     pol.setFillColor(sf::Color::Red);
-    std::cout << pol.sf::ConvexShape::getPosition().x
-              << pol.sf::ConvexShape::getPosition().y << "\n";
-    for (auto cons : cd.contacts) {
-      showConnectionNormal(window, box2.RigidBody2D::getPosition(),
-                           cons.getContactNormal());
-      std::cout << cons.getContactNormal().x << " " << cons.getContactNormal().y
-                << " lala\n";
+    // std::cout << pol.sf::ConvexShape::getPosition().x
+    //           << pol.sf::ConvexShape::getPosition().y << "\n";
+    for (auto &mans : cd.getContactManifolds()) {
+
+      for (auto cons : mans.getContacts()) {
+        showConnectionNormal(window, box2.RigidBody2D::getPosition(),
+                             cons.getContactNormal() *
+                                 cons.getPenetrationDepth());
+        std::cout << cons.getContactNormal().x * cons.getPenetrationDepth()
+                  << " "
+                  << cons.getContactNormal().y * cons.getPenetrationDepth()
+                  << " lala\n";
+      }
     }
     window.draw(pol);
     window.draw(sp);
