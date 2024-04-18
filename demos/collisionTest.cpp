@@ -70,7 +70,7 @@ int main() {
   Box box2(400, 100, 100, 50);
   box1.setInverseMass(0.05f);
   box2.setInverseMass(0.05f);
-  box2.setOrientation(M_PI / 3);
+  box2.setOrientation(M_PI / 8);
   boxes.push_back(box1);
   boxes.push_back(box2);
   box1.setFillColor(sf::Color::Red);
