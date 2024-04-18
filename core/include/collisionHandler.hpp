@@ -50,11 +50,22 @@ public:
   static sf::Vector2f getSupportS(const Circle &circle,
                                   const sf::Vector2f &direction);
 
-  static bool GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
-                                sf::RenderWindow *);
+  static bool GJKintersectionPP(Box &shapeA, Box &shapeB,
+                                std::vector<sf::Vector2f> &simplex);
+  static float findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
+                                            Box &shapeA, Box &shapeB,
+                                            sf::Vector2f &normal_);
+  static bool polygonPolygon(Box &shapeA, Box &shapeB,
+                             CollisionData &collisionData);
   static bool GJKintersectionSP(const Circle &circle,
                                 const std::vector<sf::Vector2f> &verticesB);
   static bool nearestSimplex(std::vector<sf::Vector2f> &simplex,
                              sf::Vector2f &direction, const Box &shapeA,
                              const Box &shapeB);
+  static bool findContactManifold(Box &shapeA, Box &shapeB,
+                                  CollisionData &collisionData,
+                                  sf::RenderWindow *window);
+  static void clip(std::vector<sf::Vector2f> &polygonToClip,
+                   const std::array<sf::Vector2f, 2> &edge,
+                   sf::RenderWindow *window, bool createNewPoint = true);
 };

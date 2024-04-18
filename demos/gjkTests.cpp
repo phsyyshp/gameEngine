@@ -4,12 +4,15 @@
 #include "contactResolver.hpp"
 #include "forceGeneration.hpp"
 #include "shapes.hpp"
+#include "utils.hpp"
 #include "world.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
 #include <SFML/Graphics/ConvexShape.hpp>
+#include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
+#include <array>
 #include <chrono>
 #include <iostream>
 
@@ -34,6 +37,7 @@ std::array<sf::Vertex, 2> showConnectionNormal(sf::RenderWindow &window,
   window.draw(line.data(), 2, sf::Lines);
   return line;
 }
+
 int main() {
   sf::ContextSettings settings;
   sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
@@ -59,7 +63,7 @@ int main() {
   Circle circle(0, 0, 5.f);
 
   Box orvect(400, 300, 20, 5);
-  box1.setOrientation(std::numbers::pi / 3);
+  box1.setOrientation(std::numbers::pi / 8);
   CollisionData cd;
 
   std::chrono::steady_clock::time_point lastFrameTime =
@@ -94,7 +98,10 @@ int main() {
           userAdedVelocity = {0.f, 1000.f};
         }
         if (event.key.code == sf::Keyboard::W) {
-          userAddedOrientation = 0.1;
+          userAddedOrientation = M_PI / 10;
+        }
+        if (event.key.code == sf::Keyboard::S) {
+          userAddedOrientation = -M_PI / 10;
         }
       }
     }
@@ -102,7 +109,7 @@ int main() {
     box1.addVelocity(userAdedVelocity);
     box1.integrate(deltaTime);
     box1.addVelocity(-userAdedVelocity);
-    orvect.setOrientation(userAddedOrientation + orvect.getOrientation());
+    box1.setOrientation(userAddedOrientation + box1.getOrientation());
     sf::Vector2f orvec = rotate(sf::Vector2f{1, 0}, orvect.getOrientation());
     std::vector<sf::Vector2f> vertices;
     std::vector<sf::Vector2f> vertices2;
@@ -114,13 +121,14 @@ int main() {
       vertices2.push_back(vert);
     }
 
-    sf::Vector2f spRectangle = Collider::getSupportP(vertices, orvec);
-    sf::Vector2f spCircle = Collider::getSupportS(circle, orvec);
+    sf::Vector2f spRectangle = box1.getSupport(orvec);
+    sf::Vector2f spCircle = circle.getSupport(orvec);
 
     // std::cout << spRectangle.x << " " << spRectangle.y << "\n";
     Circle sp(spRectangle.x, spRectangle.y, 5.f);
     Circle spc(spCircle.x, spCircle.y, 5.f);
-    bool isCollide = Collider::GJKintersectionPP(box1, box2, cd, &window);
+    bool isCollide = Collider::polygonPolygon(box1, box2, cd);
+    // bool isCollide = Collider::rectangleAndRectangle(box1, box2, cd);
     if (isCollide) {
       box1.setFillColor(sf::Color::Red);
     } else {
@@ -136,25 +144,41 @@ int main() {
     pol.setFillColor(sf::Color::Red);
     // std::cout << pol.sf::ConvexShape::getPosition().x
     //           << pol.sf::ConvexShape::getPosition().y << "\n";
+    window.draw(box2);
+
+    window.draw(box1);
     for (auto &mans : cd.getContactManifolds()) {
 
       for (auto cons : mans.getContacts()) {
         showConnectionNormal(window, box2.RigidBody2D::getPosition(),
                              cons.getContactNormal() *
                                  cons.getPenetrationDepth());
-        std::cout << cons.getContactNormal().x * cons.getPenetrationDepth()
-                  << " "
-                  << cons.getContactNormal().y * cons.getPenetrationDepth()
-                  << " lala\n";
+        // std::cout << cons.getContactNormal().x << " "
+        //           << cons.getContactNormal().y << " lala\n";
+        std::vector<sf::Vector2f> polygonA;
+        std::vector<sf::Vector2f> polygonB;
+        std::array<std::array<sf::Vector2f, 2>, 2> adjacentEdges;
+        std::array<std::array<sf::Vector2f, 2>, 2> adjacentEdgesB;
+
+        box1.getIncidentReferencePolygon(polygonA, -cons.getContactNormal(),
+                                         adjacentEdges, &window);
+        box2.getIncidentReferencePolygon(polygonB, cons.getContactNormal(),
+                                         adjacentEdgesB, &window);
+        // showPoints(window, polygonA);
+        // showPoints(window, polygonB);
+        // showPoints(window, {box1.getSupport(-cons.getContactNormal())},
+        //            sf::Color::Red);
+        // showPoints(window, {box2.getSupport(cons.getContactNormal())},
+        //            sf::Color::Red);
       }
     }
-    window.draw(pol);
-    window.draw(sp);
-    window.draw(spc);
-    window.draw(box2);
+    Collider::findContactManifold(box1, box2, cd, &window);
 
-    window.draw(box1);
-    window.draw(circle);
+    window.draw(pol);
+    // window.draw(sp);
+    // window.draw(spc);
+
+    // window.draw(circle);
     orvect.update();
     window.draw(orvect);
 

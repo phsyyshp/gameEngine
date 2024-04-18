@@ -1,11 +1,13 @@
 #include "collisionHandler.hpp"
 #include "contact.hpp"
+#include "utils.hpp"
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <cfloat>
 #include <limits>
+#include <vector>
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                CollisionData &collisionData) {
   if (!(a.isAwake()) && !(b.isAwake())) {
@@ -197,36 +199,17 @@ bool Collider::genericCollision(RigidBody2D &bodyA, RigidBody2D &bodyB,
   return rectangleAndRectangle(*dynamic_cast<Box *>(&bodyA),
                                *dynamic_cast<Box *>(&bodyB), collisionData);
 }
-sf::Vector2f Collider::getSupportP(const std::vector<sf::Vector2f> &vertices,
-                                   const sf::Vector2f &direction) {
-  float maxDot = -FLT_MAX;
-  float projection;
-  sf::Vector2f supportPoint;
-  for (auto &vertex : vertices) {
-    projection = dot(vertex, direction);
-    if (maxDot < projection) {
-      maxDot = projection;
-      supportPoint = vertex;
-    }
-  }
-  return supportPoint;
-}
-sf::Vector2f Collider::getSupportS(const Circle &circle,
-                                   const sf::Vector2f &direction) {
-  return circle.RigidBody2D::getPosition() +
-         normalise(direction) * circle.getRadius();
-}
 
-bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
-                                 sf::RenderWindow *window) {
+bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB,
+                                 std::vector<sf::Vector2f> &simplex) {
   // Step 1. Gjk(Gilbert-Johnson-Keerthi) algorithm;
-
   // Step 1a
   sf::Vector2f direction =
       shapeA.RigidBody2D::getPosition() - shapeB.RigidBody2D::getPosition();
   sf::Vector2f pointOnMinkowskiDiffAmB =
       shapeA.getSupport(direction) - shapeB.getSupport(-direction);
-  std::vector<sf::Vector2f> simplex{pointOnMinkowskiDiffAmB};
+  simplex.push_back(pointOnMinkowskiDiffAmB);
+  // std::vector<sf::Vector2f> simplex{pointOnMinkowskiDiffAmB};
   // Step 1b..z
   direction = -pointOnMinkowskiDiffAmB;
   while (true) {
@@ -242,8 +225,12 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
       break;
     }
   }
+}
 
-  // Step 2. EPA (Expanding Polytope Algorithm);
+float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
+                                             Box &shapeA, Box &shapeB,
+                                             sf::Vector2f &normal_) {
+  //  EPA (Expanding Polytope Algorithm);
   //  here simplex contains origin, and have 3 edges.
   float minDistance = std::numeric_limits<float>::max();
   sf::Vector2f minNormal{0.F, 0.F};
@@ -251,8 +238,9 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
   while (minDistance == std::numeric_limits<float>::max()) {
 
     for (int i = 0; i < simplex.size(); i++) {
-      sf::Vector2f sidei = simplex[(i + 1) % simplex.size()] - simplex[i];
-      sf::Vector2f normal = normalise(perpendicular(sidei));
+      int j = (i + 1) % simplex.size();
+      sf::Vector2f sidei = simplex[j] - simplex[i];
+      sf::Vector2f normal = normalise(-perpendicular(sidei));
       float distance = dot(normal, simplex[i]);
 
       if (distance < 0) {
@@ -263,7 +251,7 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
       if (minDistance > distance) {
         minDistance = distance;
         minNormal = normal;
-        minIndex = (i + 1) % simplex.size();
+        minIndex = j;
       }
     }
     sf::Vector2f newVertex =
@@ -275,39 +263,72 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB, CollisionData &cd,
     }
   }
   // minNormal = (minDistance + 0.001F) * minNormal;
-  // Draw the simplex
+  normal_ = -minNormal;
 
-  for (int i = 0; i < simplex.size(); i++) {
-    // window->clear();
-    sf::Vertex line[] = {
-        sf::Vertex(simplex[i], sf::Color::Red),
-        sf::Vertex(simplex[(i + 1) % simplex.size()], sf::Color::Red)};
-    window->draw(line, 2, sf::Lines);
+  return minDistance;
+}
+bool Collider::polygonPolygon(Box &shapeA, Box &shapeB,
+                              CollisionData &collisionData) {
+  std::vector<sf::Vector2f> simplex;
+  if (!GJKintersectionPP(shapeA, shapeB, simplex)) {
+    return false;
   }
-  std::array<sf::Vector2f, 4> verticesA = shapeA.getVertices();
-  std::array<sf::Vector2f, 4> verticesB = shapeB.getVertices();
-  for (int i = 0; i < 4; i++) {
-    for (int j = 0; j < 4; j++) {
-      sf::Vector2f mDiff = verticesA[i] - verticesB[j];
-      sf::CircleShape circle(2.F);
-      circle.setPosition(mDiff);
-
-      window->draw(circle);
-    }
-  }
-
+  sf::Vector2f normal;
+  float penetrationDepth =
+      findContactNormalPenetration(simplex, shapeA, shapeB, normal);
   Contact contact(shapeA, shapeB);
-  contact.setContactNormal(minNormal);
-  // contact.setPenetrationDepth(magnitude(simplex[minIndex]));
-  contact.setPenetrationDepth(minDistance);
-
+  contact.setContactNormal(normal);
+  contact.setPenetrationDepth(penetrationDepth);
   ContactManifold contactManifold;
   contactManifold.push_back(contact);
-  cd.push_back(contactManifold);
+  collisionData.push_back(contactManifold);
+  return true;
 }
+bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
+                                   CollisionData &collisionData,
+                                   sf::RenderWindow *window) {
+  // SH alghortihm for cliping (Sutherland-Hodgman);
+  std::vector<sf::Vector2f> simplex;
+  if (!GJKintersectionPP(shapeA, shapeB, simplex)) {
+    return false;
+  }
+  // Step0. collision normal and penetration depth
+  // Normal is always assumed to from B->A
+  sf::Vector2f normal;
+  float penetrationDepth =
+      findContactNormalPenetration(simplex, shapeA, shapeB, normal);
+  // Step 1. Vertex furthest along the collision normal
+  std::vector<sf::Vector2f> polygonA;
+  std::vector<sf::Vector2f> polygonB;
+  std::array<std::array<sf::Vector2f, 2>, 2> adjacentEdgesA;
+  std::array<std::array<sf::Vector2f, 2>, 2> adjacentEdgesB;
 
-bool Collider::GJKintersectionSP(const Circle &circle,
-                                 const std::vector<sf::Vector2f> &verticesB) {}
+  shapeA.getIncidentReferencePolygon(polygonA, -normal, adjacentEdgesA, window);
+  shapeB.getIncidentReferencePolygon(polygonB, normal, adjacentEdgesB, window);
+
+  // Step 2. Find incident and reference faces
+  std::vector<sf::Vector2f> incidentFace;
+  std::vector<sf::Vector2f> referenceFace;
+  std::array<std::array<sf::Vector2f, 2>, 2> adjacentEdges;
+
+  if (std::abs(dot(perpendicular(polygonA[0] - polygonA[1]), normal)) >
+      std::abs(dot(perpendicular(polygonB[0] - polygonB[1]), normal))) {
+    referenceFace = polygonA;
+    incidentFace = polygonB;
+    adjacentEdges = adjacentEdgesA;
+  } else {
+
+    referenceFace = polygonB;
+    incidentFace = polygonA;
+    adjacentEdges = adjacentEdgesB;
+  }
+  // Step 3. Cliping w.r.t. sides
+  clip(incidentFace, adjacentEdges[0], window);
+  clip(incidentFace, adjacentEdges[1], window);
+  clip(incidentFace, {referenceFace[0], referenceFace[1]}, window, false);
+
+  showPoints(*window, incidentFace, sf::Color::Magenta);
+}
 
 bool Collider::nearestSimplex(std::vector<sf::Vector2f> &simplex,
                               sf::Vector2f &direction, const Box &shapeA,
@@ -332,4 +353,34 @@ bool Collider::nearestSimplex(std::vector<sf::Vector2f> &simplex,
     return true;
   }
   return containsOrigin;
+}
+void Collider::clip(std::vector<sf::Vector2f> &polygonToClip,
+                    const std::array<sf::Vector2f, 2> &edge,
+                    sf::RenderWindow *window, bool createNewPoint) {
+  sf::Vector2f edgeVector = edge[1] - edge[0];
+  sf::Vector2f edgeNormal = -perpendicular(normalise(edgeVector));
+  std::vector<sf::Vector2f> tempVec;
+  std::array<sf::Vector2f, 2> nn = {edge[0], edgeNormal};
+  // plotLine(nn, *window);
+  if (createNewPoint) {
+
+    plotLine(edge, *window);
+  } else {
+
+    plotLine(edge, *window, sf::Color::Cyan);
+  }
+
+  for (auto vertex : polygonToClip) {
+    if (dot((vertex - edge[0]), edgeNormal) >= 0) {
+      tempVec.push_back(vertex);
+      continue;
+    } else if (createNewPoint) {
+      vertex = computeIntersection(polygonToClip, edge);
+      if (vertex != sf::Vector2f{std::numeric_limits<float>::max(),
+                                 std::numeric_limits<float>::max()}) {
+        tempVec.push_back(vertex);
+      }
+    }
+  }
+  polygonToClip = tempVec;
 }
