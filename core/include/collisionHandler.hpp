@@ -10,6 +10,7 @@ public:
   ContactManifold() {}
   void push_back(const Contact &contact) { contacts.push_back(contact); }
   std::vector<Contact> &getContacts() { return contacts; }
+  size_t size() const { return contacts.size(); }
 
 private:
   std::vector<Contact> contacts;
@@ -54,9 +55,11 @@ public:
                                 std::vector<sf::Vector2f> &simplex);
   static float findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
                                             Box &shapeA, Box &shapeB,
-                                            sf::Vector2f &normal_);
+                                            sf::Vector2f &normal_,
+                                            sf::RenderWindow *window);
   static bool polygonPolygon(Box &shapeA, Box &shapeB,
-                             CollisionData &collisionData);
+                             CollisionData &collisionData,
+                             sf::RenderWindow *window);
   static bool GJKintersectionSP(const Circle &circle,
                                 const std::vector<sf::Vector2f> &verticesB);
   static bool nearestSimplex(std::vector<sf::Vector2f> &simplex,

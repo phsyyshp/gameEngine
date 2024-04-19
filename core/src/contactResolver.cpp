@@ -62,17 +62,24 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
   do {
     // std::cout << collisionData.size() << "\n";
     int j = 0;
+    std::cout << "size of cd" << collisionData.getContactManifolds().size()
+              << "\n";
     for (auto &contactManifold : collisionData.getContactManifolds()) {
 
       for (auto &contact : contactManifold.getContacts()) {
         float lagrangianMultiplier;
         if (contact.isPersistent()) {
-          std::cout << "lalala4"
-                    << "\n";
+          lagrangianMultiplier = contact.getTotalImpulseNormal();
+          // std::cout << "lalala4"
+          //           << "\n";
+          std::cout << "it is persistent" << std::endl;
+
+          // sf::sleep(sf::seconds(2.0f)); // Convert integer to float
           contact.applyVelocityChange(lagrangianMultiplier * 0.1F);
-          break;
+          continue;
         } else {
           lagrangianMultiplier = contact.solveContactConstraints(deltaTime);
+          // sf::sleep(sf::seconds(2.0f)); // Convert integer to float
         }
         float totalImpulseNormal = contact.getTotalImpulseNormal();
         float oldImpulseNormal = totalImpulseNormal;
@@ -85,10 +92,11 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
       }
       // std::cout << totalChange << "\n";
 
-      std::cout << totalChange << "itNo" << i << "\n";
       // j++;
     }
+    std::cout << totalChange << "itNo" << i << "\n";
+
     i++;
 
-  } while (totalChange > 0.2F && i < 100);
+  } while (totalChange > 1.2F && i < 1000);
 }

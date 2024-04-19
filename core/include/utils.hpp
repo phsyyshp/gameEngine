@@ -11,8 +11,9 @@ float absDot(const sf::Vector2f &, const sf::Vector2f &);
 float magnitude(const sf::Vector2f &);
 sf::Vector2f normalise(sf::Vector2f);
 sf::Vector2f perpendicular(const sf::Vector2f &);
-sf::Vector2f transformToCordinateSystem(const sf::Vector2f &,
-                                        const sf::Vector2f &, float);
+sf::Vector2f transformToCordinateSystem(const sf::Vector2f &vectorToTransformed,
+                                        const sf::Vector2f &positionOfOrigin,
+                                        float orientationOfOrigin);
 
 sf::Vector2f inverseTransformToCordinateSystem(const sf::Vector2f &,
                                                const sf::Vector2f &, float);

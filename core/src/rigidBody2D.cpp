@@ -74,3 +74,6 @@ void RigidBody2D::sleep() {
   isAwake_ = false;
   isAwakeTimer = 0;
 }
+sf::Vector2f RigidBody2D::localToGlobal(const sf::Vector2f &localPoint) const {
+  return inverseTransformToCordinateSystem(localPoint, position, orientation);
+}

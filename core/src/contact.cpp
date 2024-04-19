@@ -1,8 +1,8 @@
 #include "contact.hpp"
+#include "utils.hpp"
 #include <SFML/System/Vector2.hpp>
 RigidBody2D Contact::emptyBody(-80, 80);
 // getters
-sf::Vector2f Contact::getContactPoint() const { return contactPoint; }
 sf::Vector2f Contact::getContactNormal() const { return contactNormal; }
 float Contact::getPenetrationDepth() const { return penetrationDepth; }
 std::array<std::reference_wrapper<RigidBody2D>, 2> &Contact::getBodies() {
@@ -11,17 +11,21 @@ std::array<std::reference_wrapper<RigidBody2D>, 2> &Contact::getBodies() {
 float Contact::getFriction() const { return friction; }
 float Contact::getResitution() const { return resitution; }
 
-std::array<sf::Vector2f, 2> Contact::getRelativeContactPosition() {
-  return relativeContactPosition;
+std::array<sf::Vector2f, 2> Contact::getContactPosition() const {
+  return contactPosition;
 }
-void Contact::setRelativeContactPosition(
-    const std::array<sf::Vector2f, 2> &rp) {
-  relativeContactPosition = rp;
+void Contact::setContactPosition(const std::array<sf::Vector2f, 2> &rp) {
+  contactPosition = rp;
+  contactPositionLocal = {
+      transformToCordinateSystem(rp[0], bodies[0].get().getPosition(),
+                                 bodies[0].get().getOrientation()),
+      transformToCordinateSystem(rp[1], bodies[1].get().getPosition(),
+                                 bodies[1].get().getOrientation())};
+}
+std::array<sf::Vector2f, 2> Contact::getLocalContactPosition() const {
+  return contactPositionLocal;
 }
 // setters
-void Contact::setContactPoint(const sf::Vector2f &contactPoint_) {
-  contactPoint = contactPoint_;
-}
 void Contact::setContactNormal(const sf::Vector2f &contactNormal_) {
   contactNormal = contactNormal_;
 }
@@ -42,8 +46,10 @@ sf::Vector2f Contact::calculateFrictionlessImpulse() {
   std::array<sf::Vector2f, 2> linearVelocityAtContact;
   std::array<float, 2> angularSpeed{};
   std::array<sf::Vector2f, 2> relativeContactPosition;
-  relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
-  relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
+  relativeContactPosition[0] =
+      contactPosition[0] - bodies[0].get().getPosition();
+  relativeContactPosition[1] =
+      contactPosition[1] - bodies[1].get().getPosition();
 
   float totalInverseMass =
       bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
@@ -74,8 +80,10 @@ void Contact::applyVelocityChange(float lagrangianMultiplier) {
   RigidBody2D &bodyA = bodies[0].get();
   RigidBody2D &bodyB = bodies[1].get();
   std::array<sf::Vector2f, 2> relativeContactPosition;
-  relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
-  relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
+  relativeContactPosition[0] =
+      contactPosition[0] - bodies[0].get().getPosition();
+  relativeContactPosition[1] =
+      contactPosition[1] - bodies[1].get().getPosition();
   bodies[0].get().addVelocity(contactNormal * bodyA.getInverseMass() *
                               lagrangianMultiplier);
   bodies[1].get().addVelocity(-contactNormal * bodyB.getInverseMass() *
@@ -105,9 +113,10 @@ float Contact::solveContactConstraints(float deltaTime) {
   std::array<sf::Vector2f, 2> relativeContactPosition;
   std::array<float, 2> angularComponent;
 
-  relativeContactPosition[0] = contactPoint - bodies[0].get().getPosition();
-
-  relativeContactPosition[1] = contactPoint - bodies[1].get().getPosition();
+  relativeContactPosition[0] =
+      contactPosition[0] - bodies[0].get().getPosition();
+  relativeContactPosition[1] =
+      contactPosition[1] - bodies[1].get().getPosition();
   float totalInverseMass =
       bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
   std::array<sf::Vector2f, 2> velocity = {bodyA.getVelocity(),
@@ -127,9 +136,9 @@ float Contact::solveContactConstraints(float deltaTime) {
       angularComponent[0] + angularComponent[1] + totalInverseMass;
 
   float bias = 0;
-  float beta = 0.206F;
+  float beta = 0.216F;
   // beta = 0;
-  float slop = 0.02F;
+  float slop = 0.001F;
   // slop = 0;
   bias = -beta / deltaTime * std::max(penetrationDepth - slop, 0.F);
 

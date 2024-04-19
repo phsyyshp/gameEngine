@@ -1,5 +1,7 @@
 #pragma once
+#include "utils.hpp"
 #include <SFML/Graphics.hpp>
+
 #include <iostream>
 class RigidBody2D {
 
@@ -31,6 +33,8 @@ public:
   void setAwakeTimer(int);
   void wakeUp();
   void sleep();
+
+  sf::Vector2f localToGlobal(const sf::Vector2f &localPoint) const;
 
 private:
   float inverseMass = 0.F;
