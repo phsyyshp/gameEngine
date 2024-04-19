@@ -134,7 +134,6 @@ float Contact::solveContactConstraints(float deltaTime) {
                         bodies[1].get().getInverseInertia();
   float deminator =
       angularComponent[0] + angularComponent[1] + totalInverseMass;
-
   float bias = 0;
   float beta = 0.216F;
   // beta = 0;
