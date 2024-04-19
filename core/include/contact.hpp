@@ -16,14 +16,16 @@ public:
 
   void applyImpulse(float);
   // getters declare:
-  sf::Vector2f getContactPoint() const;
+  std::array<sf::Vector2f, 2> getContactPosition() const;
   sf::Vector2f getContactNormal() const;
   float getPenetrationDepth() const;
   std::array<std::reference_wrapper<RigidBody2D>, 2> &getBodies();
   float getFriction() const;
   float getResitution() const;
+  std::array<sf::Vector2f, 2> getLocalContactPosition() const;
+
   // setters declare:
-  void setContactPoint(const sf::Vector2f &);
+  void setContactPosition(const std::array<sf::Vector2f, 2> &rp);
   void setContactNormal(const sf::Vector2f &);
   void setPenetrationDepth(float);
   void setFriction(float);
@@ -39,16 +41,18 @@ public:
   std::array<sf::Vector2f, 2> getRelativeContactPosition();
   void setRelativeContactPosition(const std::array<sf::Vector2f, 2> &rp);
   void makePersistent();
+
   bool isPersistent() const;
 
 private:
-  sf::Vector2f contactPoint;
-  sf::Vector2f contactNormal;
+  std::array<sf::Vector2f, 2> contactPosition;      // {A,B}
+  std::array<sf::Vector2f, 2> contactPositionLocal; // {A,B}
+
+  sf::Vector2f contactNormal; // Always from B to A;
   float normalImpulseSum = 0;
   float penetrationDepth = 0;
   std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
   float friction;
   float resitution = 0.5f;
-  std::array<sf::Vector2f, 2> relativeContactPosition;
   bool persistent = false;
 };

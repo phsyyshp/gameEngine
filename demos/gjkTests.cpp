@@ -60,10 +60,10 @@ int main() {
                sf::Vector2f{30, 10}});
 
   box1.setInverseMass(0.05f);
-  Circle circle(0, 0, 5.f);
+  Circle circle(0, 0, 1.f);
 
   Box orvect(400, 300, 20, 5);
-  box1.setOrientation(std::numbers::pi / 8);
+  // box1.setOrientation(std::numbers::pi);
   CollisionData cd;
 
   std::chrono::steady_clock::time_point lastFrameTime =
@@ -127,7 +127,7 @@ int main() {
     // std::cout << spRectangle.x << " " << spRectangle.y << "\n";
     Circle sp(spRectangle.x, spRectangle.y, 5.f);
     Circle spc(spCircle.x, spCircle.y, 5.f);
-    bool isCollide = Collider::polygonPolygon(box1, box2, cd);
+    bool isCollide = Collider::findContactManifold(box1, box2, cd, &window);
     // bool isCollide = Collider::rectangleAndRectangle(box1, box2, cd);
     if (isCollide) {
       box1.setFillColor(sf::Color::Red);
@@ -174,11 +174,11 @@ int main() {
     }
     Collider::findContactManifold(box1, box2, cd, &window);
 
-    window.draw(pol);
+    // window.draw(pol);
     // window.draw(sp);
     // window.draw(spc);
 
-    // window.draw(circle);
+    window.draw(circle);
     orvect.update();
     window.draw(orvect);
 

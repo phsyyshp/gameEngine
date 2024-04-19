@@ -1,7 +1,11 @@
 #include "world.hpp"
 #include "collisionHandler.hpp"
+#include "contact.hpp"
 #include "rigidBody2D.hpp"
 #include "shapes.hpp"
+#include <SFML/System/Sleep.hpp>
+#include <SFML/System/Time.hpp>
+#include <SFML/System/Vector2.hpp>
 void World::startFrame() {
   // for (auto &body : bodies) {
   //   body.clearAccumulators();
@@ -61,7 +65,7 @@ void World::findContacts() {
   }
   for (int i = 0; i < boxes.size(); i++) {
     for (int j = i + 1; j < boxes.size(); j++) {
-      Collider::rectangleAndRectangle(boxes[i], boxes[j], collisionData);
+      Collider::findContactManifold(boxes[i], boxes[j], collisionData, window);
     }
   }
 }
@@ -96,15 +100,16 @@ void World::showContacts(CollisionData &cd) {
 
     for (auto &contact : contactManifold.getContacts()) {
       float radius = 2.f;
+
       sf::CircleShape ax(radius);
+      auto contactPoint = contact.getContactPosition()[0];
       ax.setFillColor(sf::Color::Green);
-      ax.setPosition(contact.getContactPoint());
+      ax.setPosition(contactPoint);
       ax.setOrigin(radius, radius);
       window->draw(ax);
       std::array<sf::Vertex, 2> line = {
-          sf::Vertex(contact.getContactPoint(), sf::Color::Green),
-          sf::Vertex(contact.getContactPoint() +
-                         contact.getContactNormal() * 10.f,
+          sf::Vertex(contactPoint, sf::Color::Green),
+          sf::Vertex(contactPoint + contact.getContactNormal() * 10.f,
                      sf::Color::Green),
       };
       window->draw(line.data(), 2, sf::Lines);
@@ -114,43 +119,35 @@ void World::showContacts(CollisionData &cd) {
 void World::setWindow(sf::RenderWindow &window) { this->window = &window; }
 
 void World::warmStart(CollisionData &collisionData_) {
+  // collisionData.clear();
   findContacts();
   if (collisionData_.isEmpty()) {
     return;
   }
+  for (int i = 0; i < collisionData_.getContactManifolds().size(); i++) {
+    ContactManifold &manifold = collisionData_.getContactManifolds()[i];
+    for (int j = 0; j < manifold.getContacts().size(); j++) {
+      Contact &contact = manifold.getContacts()[j];
+      contact.getLocalContactPosition();
+      auto globalA = contact.getBodies()[0].get().localToGlobal(
+          contact.getLocalContactPosition()[0]);
+      auto globalB = contact.getBodies()[1].get().localToGlobal(
+          contact.getLocalContactPosition()[1]);
+      globalA - globalB;
+      if (dot(globalA - globalB, contact.getContactNormal()) <= 0) {
+        contact.makePersistent();
+        // sf::sleep(sf::seconds(2.0f)); // Convert integer to float
 
-  // Temporary list to store relevant manifolds
-  std::vector<ContactManifold> relevantManifolds;
+        // std::cout << "lala" << std::endl;
+      } else {
 
-  // std::cout << "lala\n";
-
-  for (auto &oldManifold : collisionData_.getContactManifolds()) {
-    CollisionData tempCollisionData;
-    Collider::genericCollision(oldManifold.getContacts()[0].getBodies()[0],
-                               oldManifold.getContacts()[0].getBodies()[1],
-                               tempCollisionData);
-
-    if (tempCollisionData.getContactManifolds().empty()) {
-      continue; // Skip if no collision data was generated
-    }
-
-    ContactManifold &newManifold = tempCollisionData.getContactManifolds()[0];
-    bool keepManifold = false;
-
-    for (size_t i = 0; i < oldManifold.getContacts().size(); i++) {
-      if (magnitude(oldManifold.getContacts()[i].getContactPoint() -
-                    newManifold.getContacts()[i].getContactPoint()) < 0.17F) {
-
-        // std::cout << "lala\n";
-        oldManifold.getContacts()[i].makePersistent();
-        keepManifold = true;
+        manifold.getContacts().erase(manifold.getContacts().begin() + j);
       }
     }
-
-    if (keepManifold) {
-      relevantManifolds.push_back(oldManifold); // Keep only relevant manifolds
+    if (manifold.size() == 0) {
+      collisionData_.getContactManifolds().erase(
+          collisionData_.getContactManifolds().begin() + i);
     }
   }
-
-  collisionData.setContactManifolds(relevantManifolds);
+  collisionData.setContactManifolds(collisionData_.getContactManifolds());
 }

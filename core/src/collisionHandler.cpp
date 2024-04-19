@@ -6,6 +6,7 @@
 #include <SFML/System/Vector2.hpp>
 #include <SFML/Window/Event.hpp>
 #include <cfloat>
+#include <cstdint>
 #include <limits>
 #include <vector>
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
@@ -27,7 +28,9 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
   Contact contact(a, b);
 
   contact.setContactNormal(normal);
-  contact.setContactPoint(positionA - normal * a.getRadius());
+  contact.setContactPosition(
+      {positionA - normal * a.getRadius(), positionB + normal * b.getRadius()});
+
   contact.setPenetrationDepth(a.getRadius() + b.getRadius() - distance);
   ContactManifold contactManifold;
   contactManifold.push_back(contact);
@@ -71,134 +74,134 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
   Contact contact(circle, box);
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
   contact.setContactNormal(contactNormal);
-  contact.setContactPoint(closestPointWorld);
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
-  contact.setRelativeContactPosition(
-      {-circle.getRadius() * contactNormal, closestPointWorld - boxCenter});
+  contact.setContactPosition(
+      {-circle.getRadius() * contactNormal + circleCenter, closestPointWorld});
   ContactManifold contactManifold;
   contactManifold.push_back(contact);
   collisionData.push_back(contactManifold);
   return true;
 }
-bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
-                                     CollisionData &collisionData) {
-  if (!(boxA.isAwake()) && !(boxB.isAwake())) {
-    return false;
-  }
-  if (boxA.getInverseMass() == 0 && boxB.getInverseMass() == 0) {
-    return false;
-  }
-  // get axes of Rectangle
-  sf::Vector2f positionA = boxA.RigidBody2D::getPosition();
-  sf::Vector2f halfSize = boxA.getHalfSize();
-  std::array<sf::Vector2f, 2> axesA =
-      getBaseCoordinateSystem(boxA.getOrientation());
-  sf::Vector2f positionB = boxB.RigidBody2D::getPosition();
-  sf::Vector2f halfSizeB = boxB.getHalfSize();
-  std::array<sf::Vector2f, 2> axesB =
-      getBaseCoordinateSystem(boxB.getOrientation());
-  sf::Vector2f distanceVector = positionA - positionB;
-  float minOverlap = 10'000;
-  sf::Vector2f smallestAxis;
-  bool overLapCondition;
-  for (int i = 0; i < 2; i++) {
-    sf::Vector2f axis = axesA[i];
-    overLapCondition =
-        absDot(axis, distanceVector) > (absDot(axesA[0] * halfSize.x, axis) +
-                                        absDot(axesA[1] * halfSize.y, axis) +
-                                        absDot(axesB[0] * halfSizeB.x, axis) +
-                                        absDot(axesB[1] * halfSizeB.y, axis));
+// bool Collider::rectangleAndRectangle(Box &boxA, Box &boxB,
+//                                      CollisionData &collisionData) {
+//   if (!(boxA.isAwake()) && !(boxB.isAwake())) {
+//     return false;
+//   }
+//   if (boxA.getInverseMass() == 0 && boxB.getInverseMass() == 0) {
+//     return false;
+//   }
+//   // get axes of Rectangle
+//   sf::Vector2f positionA = boxA.RigidBody2D::getPosition();
+//   sf::Vector2f halfSize = boxA.getHalfSize();
+//   std::array<sf::Vector2f, 2> axesA =
+//       getBaseCoordinateSystem(boxA.getOrientation());
+//   sf::Vector2f positionB = boxB.RigidBody2D::getPosition();
+//   sf::Vector2f halfSizeB = boxB.getHalfSize();
+//   std::array<sf::Vector2f, 2> axesB =
+//       getBaseCoordinateSystem(boxB.getOrientation());
+//   sf::Vector2f distanceVector = positionA - positionB;
+//   float minOverlap = 10'000;
+//   sf::Vector2f smallestAxis;
+//   bool overLapCondition;
+//   for (int i = 0; i < 2; i++) {
+//     sf::Vector2f axis = axesA[i];
+//     overLapCondition =
+//         absDot(axis, distanceVector) > (absDot(axesA[0] * halfSize.x, axis) +
+//                                         absDot(axesA[1] * halfSize.y, axis) +
+//                                         absDot(axesB[0] * halfSizeB.x, axis)
+//                                         + absDot(axesB[1] * halfSizeB.y,
+//                                         axis));
 
-    if (overLapCondition) {
-      return false;
-    } else {
-      float overlap = std::abs(absDot(axis, distanceVector) -
-                               (absDot(axesA[0] * halfSize.x, axis) +
-                                absDot(axesA[1] * halfSize.y, axis) +
-                                absDot(axesB[0] * halfSizeB.x, axis) +
-                                absDot(axesB[1] * halfSizeB.y, axis)));
-      if (overlap < minOverlap) {
-        minOverlap = overlap;
-        smallestAxis = axis;
-      }
-    }
-    axis = axesB[i];
-    if (overLapCondition) {
-      return false;
-    } else {
-      float overlap = std::abs(absDot(axis, distanceVector) -
-                               (absDot(axesA[0] * halfSize.x, axis) +
-                                absDot(axesA[1] * halfSize.y, axis) +
-                                absDot(axesB[0] * halfSizeB.x, axis) +
-                                absDot(axesB[1] * halfSizeB.y, axis)));
-      if (overlap < minOverlap) {
-        minOverlap = overlap;
-        smallestAxis = axis;
-      }
-    }
-  }
-  Contact contact(boxA, boxB);
-  sf::Vector2f normal = normalise(smallestAxis);
-  contact.setPenetrationDepth(minOverlap);
-  sf::Vector2f closestPoint;
-  std::array<sf::Vector2f, 4> verticesB = boxB.getVertices();
-  std::array<sf::Vector2f, 4> verticesA = boxA.getVertices();
-  bool isTouch = false;
-  bool isTouch2 = false;
+//     if (overLapCondition) {
+//       return false;
+//     } else {
+//       float overlap = std::abs(absDot(axis, distanceVector) -
+//                                (absDot(axesA[0] * halfSize.x, axis) +
+//                                 absDot(axesA[1] * halfSize.y, axis) +
+//                                 absDot(axesB[0] * halfSizeB.x, axis) +
+//                                 absDot(axesB[1] * halfSizeB.y, axis)));
+//       if (overlap < minOverlap) {
+//         minOverlap = overlap;
+//         smallestAxis = axis;
+//       }
+//     }
+//     axis = axesB[i];
+//     if (overLapCondition) {
+//       return false;
+//     } else {
+//       float overlap = std::abs(absDot(axis, distanceVector) -
+//                                (absDot(axesA[0] * halfSize.x, axis) +
+//                                 absDot(axesA[1] * halfSize.y, axis) +
+//                                 absDot(axesB[0] * halfSizeB.x, axis) +
+//                                 absDot(axesB[1] * halfSizeB.y, axis)));
+//       if (overlap < minOverlap) {
+//         minOverlap = overlap;
+//         smallestAxis = axis;
+//       }
+//     }
+//   }
+//   Contact contact(boxA, boxB);
+//   sf::Vector2f normal = normalise(smallestAxis);
+//   contact.setPenetrationDepth(minOverlap);
+//   sf::Vector2f closestPoint;
+//   std::array<sf::Vector2f, 4> verticesB = boxB.getVertices();
+//   std::array<sf::Vector2f, 4> verticesA = boxA.getVertices();
+//   bool isTouch = false;
+//   bool isTouch2 = false;
 
-  ContactManifold contactManifold;
-  for (auto vertex : verticesB) {
-    if (boxA.isPointIn(vertex)) {
-      contact.setContactPoint(vertex);
-      isTouch = true;
-      if (boxB.isPointIn(normal * (1.001f) + vertex)) {
-        normal = -normal;
-      }
-      contact.setContactNormal(normal);
-      contact.setRelativeContactPosition(
-          {vertex - positionA - normal * minOverlap, vertex - positionB});
-      contactManifold.push_back(contact);
-    }
-  }
+//   ContactManifold contactManifold;
+//   for (auto vertex : verticesB) {
+//     if (boxA.isPointIn(vertex)) {
+//       contact.setContactPoint(vertex);
+//       isTouch = true;
+//       if (boxB.isPointIn(normal * (1.001f) + vertex)) {
+//         normal = -normal;
+//       }
+//       contact.setContactNormal(normal);
+//       contact.setRelativeContactPosition(
+//           {vertex - positionA - normal * minOverlap, vertex - positionB});
+//       contactManifold.push_back(contact);
+//     }
+//   }
 
-  Contact contact2(boxA, boxB);
-  for (auto vertex : verticesA) {
-    if (boxB.isPointIn(vertex)) {
-      isTouch2 = true;
-      contact2.setContactPoint(vertex);
-      contact2.setPenetrationDepth(minOverlap);
-      if (dot(distanceVector, normal) < 0) {
-        normal = -normal;
-      }
-      if (boxB.isPointIn(vertex + normal * minOverlap)) {
-        contact2.setPenetrationDepth(minOverlap);
+//   Contact contact2(boxA, boxB);
+//   for (auto vertex : verticesA) {
+//     if (boxB.isPointIn(vertex)) {
+//       isTouch2 = true;
+//       contact2.setContactPoint(vertex);
+//       contact2.setPenetrationDepth(minOverlap);
+//       if (dot(distanceVector, normal) < 0) {
+//         normal = -normal;
+//       }
+//       if (boxB.isPointIn(vertex + normal * minOverlap)) {
+//         contact2.setPenetrationDepth(minOverlap);
 
-      } else {
+//       } else {
 
-        contact2.setPenetrationDepth(minOverlap);
-      }
-      contact2.setRelativeContactPosition(
-          {vertex - positionA, vertex - positionB + normal * minOverlap});
-      contact2.setContactNormal(normal);
-      contactManifold.push_back(contact2);
-    }
-  }
-  collisionData.push_back(contactManifold);
-  return isTouch || isTouch2;
-}
+//         contact2.setPenetrationDepth(minOverlap);
+//       }
+//       contact2.setRelativeContactPosition(
+//           {vertex - positionA, vertex - positionB + normal * minOverlap});
+//       contact2.setContactNormal(normal);
+//       contactManifold.push_back(contact2);
+//     }
+//   }
+//   collisionData.push_back(contactManifold);
+//   return isTouch || isTouch2;
+// }
 
-bool Collider::genericCollision(RigidBody2D &bodyA, RigidBody2D &bodyB,
-                                CollisionData &collisionData) {
-  if (Circle *circleAp = dynamic_cast<Circle *>(&bodyA)) {
-    if (Circle *circleBp = dynamic_cast<Circle *>(&bodyB)) {
-      return sphereAndSphere(*circleAp, *circleBp, collisionData);
-    }
-    Box *boxBp = dynamic_cast<Box *>(&bodyB);
-    return sphereAndRectangle(*circleAp, *boxBp, collisionData);
-  }
-  return rectangleAndRectangle(*dynamic_cast<Box *>(&bodyA),
-                               *dynamic_cast<Box *>(&bodyB), collisionData);
-}
+// bool Collider::genericCollision(RigidBody2D &bodyA, RigidBody2D &bodyB,
+//                                 CollisionData &collisionData) {
+//   if (Circle *circleAp = dynamic_cast<Circle *>(&bodyA)) {
+//     if (Circle *circleBp = dynamic_cast<Circle *>(&bodyB)) {
+//       return sphereAndSphere(*circleAp, *circleBp, collisionData);
+//     }
+//     Box *boxBp = dynamic_cast<Box *>(&bodyB);
+//     return sphereAndRectangle(*circleAp, *boxBp, collisionData);
+//   }
+//   return rectangleAndRectangle(*dynamic_cast<Box *>(&bodyA),
+//                                *dynamic_cast<Box *>(&bodyB), collisionData);
+// }
 
 bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB,
                                  std::vector<sf::Vector2f> &simplex) {
@@ -229,8 +232,13 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB,
 
 float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
                                              Box &shapeA, Box &shapeB,
-                                             sf::Vector2f &normal_) {
+                                             sf::Vector2f &normal_,
+                                             sf::RenderWindow *window) {
   //  EPA (Expanding Polytope Algorithm);
+  // std::cout << "simplex size " << simplex.size() << std::endl;
+  if (simplex.size() > 3) {
+    simplex.pop_back();
+  }
   //  here simplex contains origin, and have 3 edges.
   float minDistance = std::numeric_limits<float>::max();
   sf::Vector2f minNormal{0.F, 0.F};
@@ -241,6 +249,10 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
       int j = (i + 1) % simplex.size();
       sf::Vector2f sidei = simplex[j] - simplex[i];
       sf::Vector2f normal = normalise(-perpendicular(sidei));
+      // std::cout << "normal "
+      //           << "it " << i << " " << normal.x << " " << normal.y << "
+      //           size"
+      //           << simplex.size() << std::endl;
       float distance = dot(normal, simplex[i]);
 
       if (distance < 0) {
@@ -264,26 +276,21 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
   }
   // minNormal = (minDistance + 0.001F) * minNormal;
   normal_ = -minNormal;
+  // for (int i = 0; i < simplex.size(); i++) {
+  //   auto line = {simplex[i], simplex[(i + 1) % simplex.size()]};
+  //   plotLine(line, *window, sf::Color::Red);
+  // }
+  // for (auto point : shapeA.getVertices()) {
+  //   for (auto pointB : shapeB.getVertices()) {
+  //     showPoints(*window, {point - pointB});
+  //   }
+  // }
 
   return minDistance;
 }
 bool Collider::polygonPolygon(Box &shapeA, Box &shapeB,
-                              CollisionData &collisionData) {
-  std::vector<sf::Vector2f> simplex;
-  if (!GJKintersectionPP(shapeA, shapeB, simplex)) {
-    return false;
-  }
-  sf::Vector2f normal;
-  float penetrationDepth =
-      findContactNormalPenetration(simplex, shapeA, shapeB, normal);
-  Contact contact(shapeA, shapeB);
-  contact.setContactNormal(normal);
-  contact.setPenetrationDepth(penetrationDepth);
-  ContactManifold contactManifold;
-  contactManifold.push_back(contact);
-  collisionData.push_back(contactManifold);
-  return true;
-}
+                              CollisionData &collisionData,
+                              sf::RenderWindow *window) {}
 bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
                                    CollisionData &collisionData,
                                    sf::RenderWindow *window) {
@@ -295,8 +302,15 @@ bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
   // Step0. collision normal and penetration depth
   // Normal is always assumed to from B->A
   sf::Vector2f normal;
+  // std::cout << "simplex size " << simplex.size() << std::endl;
+  // int ii = 0;
+  // for (auto simp : simplex) {
+
+  //   std::cout << ii << "simplex " << simp.x << " " << simp.y << std::endl;
+  //   ii++;
+  // }
   float penetrationDepth =
-      findContactNormalPenetration(simplex, shapeA, shapeB, normal);
+      findContactNormalPenetration(simplex, shapeA, shapeB, normal, window);
   // Step 1. Vertex furthest along the collision normal
   std::vector<sf::Vector2f> polygonA;
   std::vector<sf::Vector2f> polygonB;
@@ -310,12 +324,13 @@ bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
   std::vector<sf::Vector2f> incidentFace;
   std::vector<sf::Vector2f> referenceFace;
   std::array<std::array<sf::Vector2f, 2>, 2> adjacentEdges;
-
+  bool isReferenceA = false;
   if (std::abs(dot(perpendicular(polygonA[0] - polygonA[1]), normal)) >
       std::abs(dot(perpendicular(polygonB[0] - polygonB[1]), normal))) {
     referenceFace = polygonA;
     incidentFace = polygonB;
     adjacentEdges = adjacentEdgesA;
+    isReferenceA = true;
   } else {
 
     referenceFace = polygonB;
@@ -328,6 +343,21 @@ bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
   clip(incidentFace, {referenceFace[0], referenceFace[1]}, window, false);
 
   showPoints(*window, incidentFace, sf::Color::Magenta);
+
+  // Step 4. Update Contacts
+  ContactManifold contactManifold;
+  for (auto &point : incidentFace) {
+    Contact contact(shapeA, shapeB);
+    contact.setPenetrationDepth(penetrationDepth);
+    contact.setContactNormal(normal);
+    if (isReferenceA) {
+      contact.setContactPosition({point - normal * penetrationDepth, point});
+    } else {
+      contact.setContactPosition({point, point + normal * penetrationDepth});
+    }
+    contactManifold.push_back(contact);
+  }
+  collisionData.push_back(contactManifold);
 }
 
 bool Collider::nearestSimplex(std::vector<sf::Vector2f> &simplex,
@@ -362,13 +392,13 @@ void Collider::clip(std::vector<sf::Vector2f> &polygonToClip,
   std::vector<sf::Vector2f> tempVec;
   std::array<sf::Vector2f, 2> nn = {edge[0], edgeNormal};
   // plotLine(nn, *window);
-  if (createNewPoint) {
+  // if (createNewPoint) {
 
-    plotLine(edge, *window);
-  } else {
+  //   plotLine(edge, *window);
+  // } else {
 
-    plotLine(edge, *window, sf::Color::Cyan);
-  }
+  //   plotLine(edge, *window, sf::Color::Cyan);
+  // }
 
   for (auto vertex : polygonToClip) {
     if (dot((vertex - edge[0]), edgeNormal) >= 0) {
