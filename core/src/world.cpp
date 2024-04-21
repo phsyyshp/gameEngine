@@ -17,8 +17,8 @@ void World::runPhysics(float deltaTime, int subStep) {
 
     // setSleepers();
     // findContacts();
-    CollisionData collisionData_ = collisionData;
-    warmStart(collisionData_);
+    CollisionData collisionDataOld = collisionData;
+    warmStart(collisionDataOld);
 
     contactResolver.resolveContacts(collisionData, deltaTime / subStep);
     if (isDebug) {
@@ -129,12 +129,17 @@ void World::warmStart(CollisionData &collisionData_) {
     for (int j = 0; j < manifold.getContacts().size(); j++) {
       Contact &contact = manifold.getContacts()[j];
       contact.getLocalContactPosition();
+
       auto globalA = contact.getBodies()[0].get().localToGlobal(
           contact.getLocalContactPosition()[0]);
       auto globalB = contact.getBodies()[1].get().localToGlobal(
           contact.getLocalContactPosition()[1]);
-      globalA - globalB;
-      if (dot(globalA - globalB, contact.getContactNormal()) <= 0) {
+      auto rA = contact.getContactPosition()[0] - globalA;
+      auto rB = contact.getContactPosition()[1] - globalB;
+      bool isContacting =
+          dot(globalA - globalB, contact.getContactNormal()) <= 0;
+
+      if (magnitude(rA) <= 1.F && magnitude(rB) <= 1.F && isContacting) {
         contact.makePersistent();
         // sf::sleep(sf::seconds(2.0f)); // Convert integer to float
 
