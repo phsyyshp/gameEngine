@@ -45,8 +45,8 @@ public:
   bool isPersistent() const;
 
 private:
-  std::array<sf::Vector2f, 2> contactPosition;      // {A,B}
-  std::array<sf::Vector2f, 2> contactPositionLocal; // {A,B}
+  std::array<sf::Vector2f, 2> contactPosition = {};      // {A,B}
+  std::array<sf::Vector2f, 2> contactPositionLocal = {}; // {A,B}
 
   sf::Vector2f contactNormal; // Always from B to A;
   float normalImpulseSum = 0;

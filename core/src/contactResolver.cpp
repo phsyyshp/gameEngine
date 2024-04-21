@@ -65,7 +65,6 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
     std::cout << "size of cd" << collisionData.getContactManifolds().size()
               << "\n";
     for (auto &contactManifold : collisionData.getContactManifolds()) {
-
       for (auto &contact : contactManifold.getContacts()) {
         float lagrangianMultiplier;
         if (contact.isPersistent()) {
@@ -90,9 +89,6 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
         contact.applyVelocityChange(lagrangianMultiplier);
         totalChange = lagrangianMultiplier;
       }
-      // std::cout << totalChange << "\n";
-
-      // j++;
     }
     std::cout << totalChange << "itNo" << i << "\n";
 
