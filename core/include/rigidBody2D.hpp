@@ -3,12 +3,13 @@
 #include <SFML/Graphics.hpp>
 
 #include <iostream>
+enum RigidBody2DType { CIRCLE, BOX, POLYGON, rb };
 class RigidBody2D {
 
 public:
   RigidBody2D(float x, float y) : position(x, y) {}
   virtual ~RigidBody2D(){};
-
+  virtual RigidBody2DType type() { return RigidBody2DType::rb; }
   void addForce(const sf::Vector2f &);
   // getters
   float getInverseMass() const;

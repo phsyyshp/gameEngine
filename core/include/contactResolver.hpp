@@ -6,5 +6,6 @@ public:
   void resolvePenetration(CollisionData &);
   void applyVelocityChange(Contact &contact);
   void applyPositionChange(Contact &contact);
-  void sequentialImpulse(CollisionData &collisionData, float deltaTime);
+  void sequentialImpulse(std::map<ManifoldKey, ContactManifold> manifolds,
+                         float deltaTime);
 };

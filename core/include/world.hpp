@@ -3,6 +3,7 @@
 #include "forceGeneration.hpp"
 #include "rigidBody2D.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <memory>
 class World {
 public:
   World(int bodyCount = 200, bool isDebug_ = false) : isDebug(isDebug_) {
@@ -35,8 +36,10 @@ public:
 private:
   std::vector<Box> boxes;
   std::vector<Circle> circles;
+  std::vector<std::shared_ptr<RigidBody2D>> bodies;
   CollisionData collisionData;
   ContactResolver contactResolver;
   std::vector<Gravity> gravity;
+  std::map<ManifoldKey, ContactManifold> manifolds;
   bool isDebug = false;
 };

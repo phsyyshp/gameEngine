@@ -14,7 +14,6 @@ find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 # #add another build for colliderspherespheredem
 set(COLLIDER_SPHERE_DEMO_SOURCES
 demos/colliderSphereSphereDemo.cpp
-core/src/entity.cpp
 core/src/collisionHandler.cpp
 core/src/utils.cpp
 core/src/contact.cpp
@@ -54,7 +53,6 @@ install(TARGETS ColliderSphereDemo )
 # install(TARGETS collisionTest)
 set(gjkTest_SOURCES
 demos/gjkTests.cpp
-core/src/entity.cpp
 core/src/collisionHandler.cpp
 core/src/utils.cpp
 core/src/contact.cpp
