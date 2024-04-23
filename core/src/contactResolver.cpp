@@ -6,11 +6,11 @@
 #include <array>
 #include <limits>
 
-void ContactResolver::resolveContacts(CollisionData &collisionData,
-                                      float deltaTime) {
+// void ContactResolver::resolveContacts(CollisionData &collisionData,
+//                                       float deltaTime) {
 
-  sequentialImpulse(collisionData, deltaTime);
-}
+//   sequentialImpulse(collisionData, deltaTime);
+// }
 
 // void ContactResolver::resolvePenetration(CollisionData &collisionData) {
 
@@ -53,8 +53,8 @@ void ContactResolver::resolveContacts(CollisionData &collisionData,
 //     // positionsChecked++;
 //   }
 // }
-void ContactResolver::sequentialImpulse(CollisionData &collisionData,
-                                        float deltaTime) {
+void ContactResolver::sequentialImpulse(
+    std::map<ManifoldKey, ContactManifold> manifolds, float deltaTime) {
   float totalChange = 0;
   int i = 0;
   // std::cout << collisionData.size() << "\n";
@@ -62,9 +62,11 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
   do {
     // std::cout << collisionData.size() << "\n";
     int j = 0;
-    std::cout << "size of cd" << collisionData.getContactManifolds().size()
-              << "\n";
-    for (auto &contactManifold : collisionData.getContactManifolds()) {
+    // std::cout << "size of cd" << collisionData.getContactManifolds().size()
+    //           << "\n";
+    // std::cout << "size is " << manifolds.size() << "\n";
+
+    for (auto &[key, contactManifold] : manifolds) {
       for (auto &contact : contactManifold.getContacts()) {
         float lagrangianMultiplier;
         if (contact.isPersistent()) {
@@ -90,7 +92,7 @@ void ContactResolver::sequentialImpulse(CollisionData &collisionData,
         totalChange = lagrangianMultiplier;
       }
     }
-    std::cout << totalChange << "itNo" << i << "\n";
+    // std::cout << totalChange << "itNo" << i << "\n";
 
     i++;
 

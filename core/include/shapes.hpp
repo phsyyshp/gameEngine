@@ -23,8 +23,11 @@ public:
     return position + normalise(direction) * radius;
   }
 
+  RigidBody2DType type() override { return type_; }
+
 private:
   float radius;
+  RigidBody2DType type_ = RigidBody2DType::CIRCLE;
 };
 
 class Box : public RigidBody2D, public sf::RectangleShape {
@@ -86,8 +89,7 @@ public:
   }
   void getIncidentReferencePolygon(
       std::vector<sf::Vector2f> &polygon, const sf::Vector2f &normal,
-      std::array<std::array<sf::Vector2f, 2>, 2> &adjacentEdges,
-      sf::RenderWindow *window) {
+      std::array<std::array<sf::Vector2f, 2>, 2> &adjacentEdges) {
     // findClosest vertex along normal
     std::array<sf::Vector2f, 4> vertices = getVertices();
     sf::Vector2f furthestVertexAlongNormal = getSupport(normal);
@@ -127,11 +129,13 @@ public:
     //     std::vector<sf::Vector2f>{adjacentEdges[1][0], adjacentEdges[1][1]},
     //     sf::Color::Blue);
   }
+  RigidBody2DType type() override { return type_; }
 
 private:
   sf::Vector2f halfSize;
   float width;
   float height;
+  RigidBody2DType type_ = RigidBody2DType::BOX;
 };
 
 class Polygon : public RigidBody2D, public sf::ConvexShape {
@@ -157,7 +161,9 @@ public:
     setPosition(position.x, position.y);
     setRotation(orientation / M_PIf * 180.f);
   }
+  RigidBody2DType type() override { return type_; }
 
 private:
   std::vector<sf::Vector2f> vertices;
+  RigidBody2DType type_ = RigidBody2DType::POLYGON;
 };

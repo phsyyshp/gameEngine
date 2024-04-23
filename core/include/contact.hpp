@@ -7,11 +7,8 @@
 #include <array>
 
 class Contact {
-  static RigidBody2D emptyBody;
-
 public:
-  Contact(RigidBody2D &a = emptyBody, RigidBody2D &b = emptyBody)
-      : bodies{a, b} {}
+  Contact(RigidBody2D &a, RigidBody2D &b) : bodies{a, b} {};
   sf::Vector2f calculateFrictionlessImpulse();
 
   void applyImpulse(float);
@@ -33,13 +30,9 @@ public:
 
   void applyVelocityChange(float lagrangianMultiplier);
   void applyPositionChange(std::array<sf::Vector2f, 2> &);
-  void applyVelocityChangeSphereSphere();
-  sf::Vector2f calculateFrictionlessImpulseSphereSphere();
   float solveContactConstraints(float deltaTime);
   void setTotalImpulseNormal(float totalImpulseNormal);
   float getTotalImpulseNormal();
-  std::array<sf::Vector2f, 2> getRelativeContactPosition();
-  void setRelativeContactPosition(const std::array<sf::Vector2f, 2> &rp);
   void makePersistent();
 
   bool isPersistent() const;

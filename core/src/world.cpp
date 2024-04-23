@@ -16,11 +16,10 @@ void World::runPhysics(float deltaTime, int subStep) {
   for (int i = 0; i < subStep; i++) {
 
     // setSleepers();
-    // findContacts();
-    CollisionData collisionDataOld = collisionData;
-    warmStart(collisionDataOld);
-
-    contactResolver.resolveContacts(collisionData, deltaTime / subStep);
+    findContacts();
+    // warmStart(collisionDataOld);
+    // std::cout << manifolds.size() << "\n";
+    contactResolver.sequentialImpulse(manifolds, deltaTime / subStep);
     if (isDebug) {
       showContacts(collisionData);
     }
@@ -43,29 +42,47 @@ void World::runPhysics(float deltaTime, int subStep) {
     }
   }
 }
-
-void World::registerBody(Box &body) { boxes.push_back(body); }
-void World::registerBody(Circle &body) { circles.push_back(body); }
+void World::registerBody(Box &body) {
+  boxes.push_back(body);
+  bodies.push_back(std::make_shared<Box>(body));
+}
+void World::registerBody(Circle &body) {
+  circles.push_back(body);
+  bodies.push_back(std::make_shared<Circle>(body));
+}
 size_t World::getBodySize() const { return boxes.size() + circles.size(); }
 void World::registerGravity(Gravity &forceGenerator) {
   gravity.push_back(forceGenerator);
 }
 std::vector<Circle> &World::getCircles() { return circles; }
 std::vector<Box> &World::getBoxes() { return boxes; }
-
 const CollisionData &World::getCollisionData() const { return collisionData; }
+
 void World::findContacts() {
-  for (int i = 0; i < circles.size(); i++) {
-    for (int j = i + 1; j < circles.size(); j++) {
-      Collider::sphereAndSphere(circles[i], circles[j], collisionData);
-    }
-    for (auto &box : boxes) {
-      Collider::sphereAndRectangle(circles[i], box, collisionData);
-    }
-  }
-  for (int i = 0; i < boxes.size(); i++) {
-    for (int j = i + 1; j < boxes.size(); j++) {
-      Collider::findContactManifold(boxes[i], boxes[j], collisionData, window);
+  for (int i = 0; i < bodies.size(); i++) {
+    for (int j = i + 1; j < bodies.size(); j++) {
+      if (bodies[i]->getInverseMass() == 0 &&
+          bodies[j]->getInverseMass() == 0) {
+        continue;
+      }
+      ContactManifold manifold(bodies[i].get(), bodies[j].get());
+      ManifoldKey manifoldKey(*bodies[i].get(), *bodies[j].get());
+      std::cout << "manifold size is: " << manifold.size() << std::endl;
+      if (manifold.size() > 0) {
+        std::cout << "checking stuff" << std::endl;
+        auto manIt = manifolds.find(manifoldKey);
+        if (manIt == manifolds.end()) {
+
+          std::cout << "new manifold" << std::endl;
+          manifolds.insert(std::make_pair(manifoldKey, manifold));
+        } else {
+
+          std::cout << "existing manifold" << std::endl;
+          manIt->second.update(manifold.getContacts());
+        }
+      } else {
+        manifolds.erase(manifoldKey);
+      }
     }
   }
 }

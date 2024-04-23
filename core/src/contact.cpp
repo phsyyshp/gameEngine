@@ -1,7 +1,6 @@
 #include "contact.hpp"
 #include "utils.hpp"
 #include <SFML/System/Vector2.hpp>
-RigidBody2D Contact::emptyBody(-80, 80);
 // getters
 sf::Vector2f Contact::getContactNormal() const { return contactNormal; }
 float Contact::getPenetrationDepth() const { return penetrationDepth; }
