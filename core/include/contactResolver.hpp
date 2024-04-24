@@ -1,11 +1,8 @@
 #pragma once
-#include "collisionHandler.hpp"
+#include "manifold.hpp"
 class ContactResolver {
 public:
-  void resolveContacts(CollisionData &, float);
-  void resolvePenetration(CollisionData &);
-  void applyVelocityChange(Contact &contact);
-  void applyPositionChange(Contact &contact);
-  void sequentialImpulse(std::map<ManifoldKey, ContactManifold> manifolds,
+  void prestep(std::map<ManifoldKey, Manifold> manifolds, float deltaTime);
+  void sequentialImpulse(std::map<ManifoldKey, Manifold> manifolds,
                          float deltaTime);
 };
