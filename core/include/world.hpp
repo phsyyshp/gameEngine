@@ -1,4 +1,3 @@
-#include "collisionHandler.hpp"
 #include "contactResolver.hpp"
 #include "forceGeneration.hpp"
 #include "rigidBody2D.hpp"
@@ -7,39 +6,30 @@
 class World {
 public:
   World(int bodyCount = 200, bool isDebug_ = false) : isDebug(isDebug_) {
-    boxes.reserve(bodyCount);
-    circles.reserve(bodyCount);
+    bodies.reserve(bodyCount);
   }
 
   void startFrame();
   void runPhysics(float deltaTime, int subStep = 1);
-  void registerBody(Box &body);
-  void registerBody(Circle &body);
+  void registerBody(std::unique_ptr<RigidBody2D> body);
   void registerGravity(Gravity &forceGenerator);
 
-  std::vector<Circle> &getCircles();
-  std::vector<Box> &getBoxes();
+  std::vector<std::unique_ptr<RigidBody2D>> &getBodies();
   size_t getBodySize() const;
-  const CollisionData &getCollisionData() const;
+  const std::map<ManifoldKey, Manifold> &getManifolds() const;
 
   void findContacts();
   void resolveCollisions();
   void setSleepers();
-  void warmStart(CollisionData &collisionData);
-  // void regiterForceGenerator(ForceGenerator &forceGenerator);
 
   void setWindow(sf::RenderWindow &window);
-  void showContacts(CollisionData &cd);
-  void findContactsWarmStart();
+  void showContacts(std::map<ManifoldKey, Manifold> &cd);
   sf::RenderWindow *window;
 
 private:
-  std::vector<Box> boxes;
-  std::vector<Circle> circles;
-  std::vector<std::shared_ptr<RigidBody2D>> bodies;
-  CollisionData collisionData;
+  std::vector<std::unique_ptr<RigidBody2D>> bodies;
   ContactResolver contactResolver;
   std::vector<Gravity> gravity;
-  std::map<ManifoldKey, ContactManifold> manifolds;
+  std::map<ManifoldKey, Manifold> manifolds;
   bool isDebug = false;
 };
