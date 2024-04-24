@@ -78,7 +78,7 @@ public:
     float deminator =
         angularComponent[0] + angularComponent[1] + totalInverseMass;
     float bias = 0;
-    float beta = 0.216F;
+    float beta = 0.2F;
     // beta = 0;
     float slop = 0.001F;
     // slop = 0;
