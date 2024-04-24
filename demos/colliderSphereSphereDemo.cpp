@@ -1,13 +1,11 @@
-#include "collisionHandler.hpp"
-#include "contactResolver.hpp"
 #include "forceGeneration.hpp"
+#include "rigidBody2D.hpp"
 #include "shapes.hpp"
 #include "world.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
-#include <chrono>
-#include <iostream>
+#include <memory>
 
 int main(int argc, char *argv[]) {
   sf::ContextSettings settings;
@@ -24,50 +22,25 @@ int main(int argc, char *argv[]) {
 
   float timeScale = 1;
   float lengthScale = 10001.f;
-  int frameNo = 0;
-  //   lengthScale = 0.f;
-  Circle mcirc0(400, 1500, 1001);
-  Circle mcirc(-850, 100, 1000);
-  mcirc.setPointCount(200);
-  mcirc0.setPointCount(200);
-
-  Circle mcirc2(1370, 300, 1000);
-
-  mcirc2.setPointCount(200);
-
-  Box box(200, 500, 200, 25);
-  float density = 0.5f;
-  float mass = density * 200 * 25;
-  box.setInverseMass(1 / mass);
-  // world.registerBody(box);
-  //   mcirc2.setInverseMass(0.05);
-  //   mcirc.addVelocity({3000.f, 0.f});
-  //   mcirc2.addVelocity({-3000.f, 0.f});
-  Box mbox(400, 605, 800, 100);
-  Box mboxLeft(0, 250, 100, 600);
-  Box mboxRight(600, 250, 100, 600);
-  mbox.setInverseInertia(0.F);
-  mboxLeft.setInverseInertia(0.F);
-  mboxRight.setInverseInertia(0.F);
+  // lengthScale = 0.F;
+  std::unique_ptr<Box> mbox = std::make_unique<Box>(400, 605, 800, 100);
+  std::unique_ptr<Box> mboxLeft = std::make_unique<Box>(0, 250, 100, 600);
+  std::unique_ptr<Box> mboxRight = std::make_unique<Box>(600, 250, 100, 600);
+  mbox->setInverseInertia(0.F);
+  mboxLeft->setInverseInertia(0.F);
+  mboxRight->setInverseInertia(0.F);
   Gravity gravity({0.f, lengthScale * 9.8f});
-  world.registerBody(mbox);
-  world.registerBody(mboxLeft);
-  world.registerBody(mboxRight);
+  world.registerBody(std::move(mbox));
+  world.registerBody(std::move(mboxLeft));
+  world.registerBody(std::move(mboxRight));
   world.registerGravity(gravity);
 
   world.setWindow(window);
-  std::chrono::steady_clock::time_point lastFrameTime =
-      std::chrono::steady_clock::now();
-  while (window.isOpen()) {
-    // record the time in high precision
 
-    std::chrono::steady_clock::time_point currentFrameTime =
-        std::chrono::steady_clock::now();
-    frameDuration = std::chrono::duration_cast<std::chrono::duration<float>>(
-                        currentFrameTime - lastFrameTime)
-                        .count();
-    lastFrameTime = currentFrameTime;
+  while (window.isOpen()) {
     sf::Event event;
+
+    // Take inputs;
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) {
         window.close();
@@ -75,64 +48,52 @@ int main(int argc, char *argv[]) {
       if (event.type == sf::Event::MouseButtonPressed) {
         if (event.mouseButton.button == sf::Mouse::Left) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-          Circle circle(mousePos.x, mousePos.y, 30);
+          std::unique_ptr<Circle> circle =
+              std::make_unique<Circle>(mousePos.x, mousePos.y, 30);
           float density = 1.0f;
           float mass = density * 3.14159f * 10 * 10;
-
-          circle.setInverseMass(1 / mass);
-
-          world.registerBody(circle);
+          circle->setInverseMass(1 / mass);
+          world.registerBody(std::move(circle));
         }
         if (event.mouseButton.button == sf::Mouse::Right) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-          Box box(mousePos.x, mousePos.y, 200, 25);
+          std::unique_ptr<Box> box =
+              std::make_unique<Box>(mousePos.x, mousePos.y, 200, 25);
           float density = 0.5f;
           float mass = density * 200 * 25;
-          box.setInverseMass(1 / mass);
-          world.registerBody(box);
+          box->setInverseMass(1 / mass);
+          world.registerBody(std::move(box));
         }
       }
     }
-    // std::cout << "Number of circles: " << circles.size() << "\n";
+
+    // run physics
     int subStep = 1;
     world.runPhysics(deltaTime, subStep);
-    for (auto &circle : world.getCircles()) {
-      window.draw(circle);
-      circle.update();
-      circle.setOutlineThickness(1.f);
-      circle.setOutlineColor(sf::Color::Red);
-      if (isDebug) {
-        circle.setFillColor(sf::Color::Transparent);
+    for (auto &body : world.getBodies()) {
+      if (body->type() == RigidBody2DType::CIRCLE) {
+
+        Circle *bodyc = static_cast<Circle *>(body.get());
+        bodyc->update();
+        bodyc->setOutlineThickness(1.f);
+        bodyc->setOutlineColor(sf::Color::Red);
+        if (isDebug) {
+          bodyc->setFillColor(sf::Color::Transparent);
+        }
+        window.draw(*bodyc);
       }
-      // if (circle.isAwake()) {
-      //   circle.setFillColor(sf::Color::Green);
-      // } else {
-      //   circle.setFillColor(sf::Color::Red);
-      // }
-    }
-    for (auto &box : world.getBoxes()) {
-      window.draw(box);
-      box.update();
-      box.setOutlineThickness(1.f);
-      if (isDebug) {
+      if (body->type() == RigidBody2DType::BOX) {
 
-        box.setOutlineColor(sf::Color::Blue);
-        box.setFillColor(sf::Color::Transparent);
+        Box *bodyb = static_cast<Box *>(body.get());
+        bodyb->update();
+        bodyb->setOutlineThickness(1.f);
+        bodyb->setOutlineColor(sf::Color::Red);
+        if (isDebug) {
+          bodyb->setFillColor(sf::Color::Transparent);
+        }
+        window.draw(*bodyb);
       }
-
-      // if (box.isAwake()) {
-      //   box.setFillColor(sf::Color::Green);
-      // } else {
-      //   box.setFillColor(sf::Color::Red);
-      // }
     }
-
-    frameNo++;
-    if (frameNo % 100 == 0) {
-      // std::cout << frameDuration * 1000 << " ms " << world.getBodySize()
-      // << "\n";
-    }
-    // std::cout << cd.contacts.size() << "\n";
 
     window.display();
     window.clear(sf::Color::Black);
