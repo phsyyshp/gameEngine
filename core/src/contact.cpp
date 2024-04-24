@@ -1,28 +1,25 @@
 #include "contact.hpp"
-#include "utils.hpp"
-#include <SFML/System/Vector2.hpp>
+#include "rigidBody2D.hpp"
 // getters
 sf::Vector2f Contact::getContactNormal() const { return contactNormal; }
 float Contact::getPenetrationDepth() const { return penetrationDepth; }
-std::array<std::reference_wrapper<RigidBody2D>, 2> &Contact::getBodies() {
-  return bodies;
-}
 float Contact::getFriction() const { return friction; }
 float Contact::getResitution() const { return resitution; }
-
 std::array<sf::Vector2f, 2> Contact::getContactPosition() const {
   return contactPosition;
 }
-void Contact::setContactPosition(const std::array<sf::Vector2f, 2> &rp) {
-  contactPosition = rp;
-  contactPositionLocal = {
-      transformToCordinateSystem(rp[0], bodies[0].get().getPosition(),
-                                 bodies[0].get().getOrientation()),
-      transformToCordinateSystem(rp[1], bodies[1].get().getPosition(),
-                                 bodies[1].get().getOrientation())};
-}
+float Contact::getTotalImpulseNormal() { return normalImpulseSum; }
 std::array<sf::Vector2f, 2> Contact::getLocalContactPosition() const {
   return contactPositionLocal;
+}
+void Contact::setContactPosition(const std::array<sf::Vector2f, 2> &rp,
+                                 const RigidBody2D &bodyA,
+                                 const RigidBody2D &bodyB) {
+  contactPosition = rp;
+  contactPositionLocal = {transformToCordinateSystem(rp[0], bodyA.getPosition(),
+                                                     bodyA.getOrientation()),
+                          transformToCordinateSystem(rp[1], bodyB.getPosition(),
+                                                     bodyB.getOrientation())};
 }
 // setters
 void Contact::setContactNormal(const sf::Vector2f &contactNormal_) {
@@ -34,121 +31,8 @@ void Contact::setPenetrationDepth(float penetrationDepth_) {
 void Contact::setFriction(float friction_) { friction = friction_; }
 void Contact::setResitution(float resitution_) { resitution = resitution_; }
 // helpers
-
 void Contact::setTotalImpulseNormal(float totalImpulseNormal_) {
   normalImpulseSum = totalImpulseNormal_;
 }
-float Contact::getTotalImpulseNormal() { return normalImpulseSum; }
-sf::Vector2f Contact::calculateFrictionlessImpulse() {
-  sf::Vector2f impulse;
-  std::array<sf::Vector2f, 2> linearVelocityAtContacRelativeToCenter;
-  std::array<sf::Vector2f, 2> linearVelocityAtContact;
-  std::array<float, 2> angularSpeed{};
-  std::array<sf::Vector2f, 2> relativeContactPosition;
-  relativeContactPosition[0] =
-      contactPosition[0] - bodies[0].get().getPosition();
-  relativeContactPosition[1] =
-      contactPosition[1] - bodies[1].get().getPosition();
-
-  float totalInverseMass =
-      bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
-  for (int i = 0; i < 2; i++) {
-    linearVelocityAtContacRelativeToCenter[i] =
-        bodies[i].get().getAngularVelocity() *
-        perpendicular(relativeContactPosition[i]);
-    linearVelocityAtContact[i] = bodies[i].get().getVelocity() +
-                                 linearVelocityAtContacRelativeToCenter[i];
-  }
-  sf::Vector2f contactVelocity =
-      linearVelocityAtContact[0] - linearVelocityAtContact[1];
-  float impulseForce = dot(contactVelocity, contactNormal);
-  angularSpeed[0] = cross(relativeContactPosition[0], contactNormal) *
-                    bodies[0].get().getInverseInertia();
-  angularSpeed[1] = cross(relativeContactPosition[1], contactNormal) *
-                    bodies[1].get().getInverseInertia();
-  float angularEffect =
-      dot(perpendicular(relativeContactPosition[0]) * angularSpeed[0],
-          contactNormal) +
-      dot(perpendicular(relativeContactPosition[1]) * angularSpeed[1],
-          contactNormal);
-  impulseForce =
-      impulseForce * (-1.0f - resitution) / (totalInverseMass + angularEffect);
-  return impulseForce * contactNormal;
-}
-void Contact::applyVelocityChange(float lagrangianMultiplier) {
-  RigidBody2D &bodyA = bodies[0].get();
-  RigidBody2D &bodyB = bodies[1].get();
-  std::array<sf::Vector2f, 2> relativeContactPosition;
-  relativeContactPosition[0] =
-      contactPosition[0] - bodies[0].get().getPosition();
-  relativeContactPosition[1] =
-      contactPosition[1] - bodies[1].get().getPosition();
-  bodies[0].get().addVelocity(contactNormal * bodyA.getInverseMass() *
-                              lagrangianMultiplier);
-  bodies[1].get().addVelocity(-contactNormal * bodyB.getInverseMass() *
-                              lagrangianMultiplier);
-  bodies[0].get().addAngularVelocity(
-      cross(relativeContactPosition[0], contactNormal) *
-      bodyA.getInverseInertia() * lagrangianMultiplier);
-  bodies[1].get().addAngularVelocity(
-      cross(-relativeContactPosition[1], contactNormal) *
-      bodyB.getInverseInertia() * lagrangianMultiplier);
-}
-
-void Contact::applyPositionChange(std::array<sf::Vector2f, 2> &displacement) {
-  float totalInverseMass =
-      bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
-  displacement[0] = contactNormal * penetrationDepth *
-                    bodies[0].get().getInverseMass() / totalInverseMass;
-  displacement[1] = -contactNormal * penetrationDepth *
-                    bodies[1].get().getInverseMass() / totalInverseMass;
-  bodies[0].get().addDisplacement(displacement[0]);
-  bodies[1].get().addDisplacement(displacement[1]);
-}
-
-float Contact::solveContactConstraints(float deltaTime) {
-  RigidBody2D &bodyA = bodies[0].get();
-  RigidBody2D &bodyB = bodies[1].get();
-  std::array<sf::Vector2f, 2> relativeContactPosition;
-  std::array<float, 2> angularComponent;
-
-  relativeContactPosition[0] =
-      contactPosition[0] - bodies[0].get().getPosition();
-  relativeContactPosition[1] =
-      contactPosition[1] - bodies[1].get().getPosition();
-  float totalInverseMass =
-      bodies[0].get().getInverseMass() + bodies[1].get().getInverseMass();
-  std::array<sf::Vector2f, 2> velocity = {bodyA.getVelocity(),
-                                          bodyB.getVelocity()};
-  std::array<float, 2> angularSpeed = {bodyA.getAngularVelocity(),
-                                       bodyB.getAngularVelocity()};
-  std::array<sf::Vector2f, 2> angularVelocity = {
-      perpendicular(relativeContactPosition[0]) * angularSpeed[0],
-      perpendicular(relativeContactPosition[1]) * angularSpeed[1]};
-  angularComponent[0] = cross(relativeContactPosition[0], contactNormal) *
-                        cross(relativeContactPosition[0], contactNormal) *
-                        bodies[0].get().getInverseInertia();
-  angularComponent[1] = cross(relativeContactPosition[1], contactNormal) *
-                        cross(relativeContactPosition[1], contactNormal) *
-                        bodies[1].get().getInverseInertia();
-  float deminator =
-      angularComponent[0] + angularComponent[1] + totalInverseMass;
-  float bias = 0;
-  float beta = 0.216F;
-  // beta = 0;
-  float slop = 0.001F;
-  // slop = 0;
-  bias = -beta / deltaTime * std::max(penetrationDepth - slop, 0.F);
-
-  // bias+=resitution*()
-
-  float lagrangianMultiplier =
-      -(dot(velocity[0] - velocity[1] + angularVelocity[0] - angularVelocity[1],
-            contactNormal) +
-        bias) /
-      deminator;
-  return lagrangianMultiplier;
-}
-
 void Contact::makePersistent() { persistent = true; }
 bool Contact::isPersistent() const { return persistent; }
