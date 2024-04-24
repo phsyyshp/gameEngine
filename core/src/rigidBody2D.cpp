@@ -47,6 +47,20 @@ void RigidBody2D::integrate(float deltaTime) {
   orientation = std::fmod(orientation, 2 * M_PI);
   clearAccumulators();
 }
+void RigidBody2D::integrateForces(float deltaTime) {
+  lastFrameAcceleration = forceAccum * inverseMass;
+  float angularAcceleration = torqueAccum * inverseInertia;
+
+  velocity += lastFrameAcceleration * deltaTime;
+  angularVelocity += angularAcceleration * deltaTime;
+}
+void RigidBody2D::integrateVelocities(float deltaTime) {
+
+  position += velocity * deltaTime;
+  orientation += angularVelocity * deltaTime;
+  orientation = std::fmod(orientation, 2 * M_PI);
+  clearAccumulators();
+}
 
 void RigidBody2D::setInverseInertia(float inverseInertia_) {
   inverseInertia = inverseInertia_;

@@ -19,6 +19,9 @@ public:
   void setOrientation(float);
   void addDisplacement(const sf::Vector2f &);
   void integrate(float deltaTime);
+  void integrateForces(float deltaTime);
+  void integrateVelocities(float deltaTime);
+
   void clearAccumulators();
 
   void addForceAtPoint(const sf::Vector2f &force, const sf::Vector2f &point);
