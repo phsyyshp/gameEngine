@@ -1,8 +1,8 @@
 #include "collisionHandler.hpp"
 #include "visuals.hpp"
 
-const bool Collider::warmStart = false;
-const bool Collider::accumulateImpulse = false;
+const bool Collider::warmStart = true;
+const bool Collider::accumulateImpulse = true;
 
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                std::vector<Contact> &contacts) {
@@ -170,6 +170,7 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
                                              Box &shapeA, Box &shapeB,
                                              sf::Vector2f &normal_) {
   //  EPA (Expanding Polytope Algorithm);
+  // std::cout << simplex.size() << std::endl;
   if (simplex.size() > 3) {
     simplex.pop_back();
   }
@@ -185,6 +186,10 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
       sf::Vector2f normal = normalise(-perpendicular(sidei));
       float distance = dot(normal, simplex[i]);
 
+      // std::cout << "md" << distance << "\n";
+      if (std::abs(distance) <= 1e-3F) {
+        return 0.001F;
+      }
       if (distance < 0) {
         distance *= -1.F;
         normal *= -1.F;
@@ -205,6 +210,7 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
     }
   }
   normal_ = -minNormal;
+  // Visualising the simplex and mDiff
   if (Visual::isDebug) {
     for (int i = 0; i < simplex.size(); i++) {
       auto line = {simplex[i], simplex[(i + 1) % simplex.size()]};

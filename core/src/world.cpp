@@ -1,4 +1,6 @@
 #include "world.hpp"
+#include <SFML/System/Sleep.hpp>
+#include <SFML/System/Time.hpp>
 void World::startFrame() {
   // for (auto &body : bodies) {
   //   body.clearAccumulators();
@@ -15,7 +17,7 @@ void World::runPhysics(float deltaTime, int subStep) {
     }
     for (auto &forceGenerator : gravity) {
       forceGenerator.updateForce(*body, deltaTime);
-      // body->integrateForces(deltaTime);
+      body->integrateForces(deltaTime);
     }
   }
   for (auto &[key, manifold] : manifolds) {
@@ -24,20 +26,24 @@ void World::runPhysics(float deltaTime, int subStep) {
     }
   }
   float totalChange = 0;
+  float lastChange = 0;
   int i = 0;
   do {
     for (auto &[key, manifold] : manifolds) {
       for (auto &contact : manifold.getContacts()) {
         float lagrangianMultiplier =
             manifold.solveContactConstraints(contact, deltaTime);
-        // manifold.applyVelocityChange(lagrangianMultiplier, contact);
-        totalChange = lagrangianMultiplier;
+        manifold.applyVelocityChange(lagrangianMultiplier, contact);
+        lastChange = lagrangianMultiplier;
+        totalChange = contact.getTotalImpulseNormal();
+        std::cout << "Total change is: " << totalChange
+                  << "last change is: " << lastChange << "iteration: " << i
+                  << std::endl;
+        // sf::sleep(sf::seconds(0.1F));
       }
     }
-    std::cout << "change is: " << totalChange << "iteration: " << i
-              << std::endl;
     i++;
-  } while (totalChange > 1.2F && i < 1);
+  } while (std::abs(lastChange) / totalChange > 0.003F && i < 1000);
   for (auto &body : bodies) {
     body->integrateVelocities(deltaTime);
   }

@@ -2,7 +2,6 @@
 #include "contact.hpp"
 #include "rigidBody2D.hpp"
 #include "shapes.hpp"
-#include "visuals.hpp"
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Sleep.hpp>

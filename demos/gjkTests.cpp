@@ -6,14 +6,16 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <memory>
 
 int main(int argc, char *argv[]) {
-  // sf::View view(sf::Vector2f(100.f, 100.f), sf::Vector2f(1200.f, 800.f));
-  sf::View view;
-  view.zoom(2.F);
+  // sf::View view;
+  // view.zoom(2.F);
   auto &window = Visual::window;
-  window.setView(view);
+  sf::View view(sf::Vector2f(window.getSize().x / 2, window.getSize().y / 2),
+                sf::Vector2f(window.getSize().x, window.getSize().y));
+
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
@@ -71,10 +73,23 @@ int main(int argc, char *argv[]) {
         if (event.key.code == sf::Keyboard::Down) {
           userAdedVelocity = {0.f, 1000.f};
         }
+        if (event.key.code == sf::Keyboard::A) {
+          view.move(-10.f, 0.f);
+        }
+        if (event.key.code == sf::Keyboard::D) {
+          view.move(10.f, 0.f);
+        }
         if (event.key.code == sf::Keyboard::W) {
-          userAddedOrientation = M_PI / 10;
+          view.move(0.f, -10.f);
         }
         if (event.key.code == sf::Keyboard::S) {
+          view.move(0.f, 10.f);
+        }
+
+        if (event.key.code == sf::Keyboard::Q) {
+          userAddedOrientation = M_PI / 10;
+        }
+        if (event.key.code == sf::Keyboard::E) {
           userAddedOrientation = -M_PI / 10;
         }
       }
@@ -111,6 +126,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
+    window.setView(view);
     window.display();
     window.clear(sf::Color::Black);
   }
