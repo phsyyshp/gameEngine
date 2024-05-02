@@ -9,7 +9,11 @@
 #include <memory>
 
 int main(int argc, char *argv[]) {
+  // sf::View view(sf::Vector2f(100.f, 100.f), sf::Vector2f(1200.f, 800.f));
+  sf::View view;
+  view.zoom(2.F);
   auto &window = Visual::window;
+  window.setView(view);
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;

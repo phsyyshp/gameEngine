@@ -1,6 +1,7 @@
 #pragma once
 #include "rigidBody2D.hpp"
 #include "utils.hpp"
+#include "visuals.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/ConvexShape.hpp>
 #include <SFML/Graphics/RenderWindow.hpp>
@@ -112,22 +113,28 @@ public:
         maxDot = projection;
         polygon = {edge[0], edge[1]};
       }
-      // showPoints(*window, std::vector<sf::Vector2f>{edge[0], edge[1]},
-      //            sf::Color::Red);
+      if (Visual::isDebug) {
+
+        showPoints(Visual::window, std::vector<sf::Vector2f>{edge[0], edge[1]},
+                   sf::Color::Red);
+      }
     }
     auto it = std::find(vertices.begin(), vertices.end(), polygon[0]);
     adjacentEdges[0] = {vertices[(it - vertices.begin() + 4 - 1) % 4],
                         polygon[0]};
     it = std::find(vertices.begin(), vertices.end(), polygon[1]);
     adjacentEdges[1] = {polygon[1], vertices[(it - vertices.begin() + 1) % 4]};
-    // showPoints(
-    //     *window,
-    //     std::vector<sf::Vector2f>{adjacentEdges[0][0], adjacentEdges[0][1]},
-    //     sf::Color::Blue);
-    // showPoints(
-    //     *window,
-    //     std::vector<sf::Vector2f>{adjacentEdges[1][0], adjacentEdges[1][1]},
-    //     sf::Color::Blue);
+    if (Visual::isDebug) {
+
+      showPoints(
+          Visual::window,
+          std::vector<sf::Vector2f>{adjacentEdges[0][0], adjacentEdges[0][1]},
+          sf::Color::Blue);
+      showPoints(
+          Visual::window,
+          std::vector<sf::Vector2f>{adjacentEdges[1][0], adjacentEdges[1][1]},
+          sf::Color::Blue);
+    }
   }
   RigidBody2DType type() override { return type_; }
 

@@ -37,7 +37,7 @@ void World::runPhysics(float deltaTime, int subStep) {
     std::cout << "change is: " << totalChange << "iteration: " << i
               << std::endl;
     i++;
-  } while (totalChange > 1.2F && i < 1000);
+  } while (totalChange > 1.2F && i < 1);
   for (auto &body : bodies) {
     body->integrateVelocities(deltaTime);
   }
