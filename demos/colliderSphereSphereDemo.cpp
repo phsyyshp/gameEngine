@@ -1,6 +1,7 @@
 #include "forceGeneration.hpp"
 #include "rigidBody2D.hpp"
 #include "shapes.hpp"
+#include "visuals.hpp"
 #include "world.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
@@ -9,8 +10,7 @@
 
 int main(int argc, char *argv[]) {
   sf::ContextSettings settings;
-  sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
-                          sf::Style::Default);
+  auto &window = Visual::window;
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;

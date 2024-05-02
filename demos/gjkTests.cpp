@@ -9,9 +9,7 @@
 #include <memory>
 
 int main(int argc, char *argv[]) {
-  sf::ContextSettings settings;
-  sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
-                          sf::Style::Default);
+  auto &window = Visual::window;
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
@@ -38,8 +36,8 @@ int main(int argc, char *argv[]) {
   world.registerBody(std::move(mbox));
   world.registerBody(std::move(mboxLeft));
   world.registerBody(std::move(mboxRight));
-  world.registerBody(std::move(box1));
   world.registerBody(std::move(circle));
+  world.registerBody(std::move(box1));
 
   // world.registerGravity(gravity);
 

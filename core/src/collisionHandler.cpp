@@ -1,4 +1,9 @@
 #include "collisionHandler.hpp"
+#include "visuals.hpp"
+
+const bool Collider::warmStart = false;
+const bool Collider::accumulateImpulse = false;
+
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                std::vector<Contact> &contacts) {
   if (!(a.isAwake()) && !(b.isAwake())) {
@@ -18,9 +23,7 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
   Contact contact;
 
   contact.setContactNormal(normal);
-  contact.setContactPosition(
-      {positionA - normal * a.getRadius(), positionB + normal * b.getRadius()},
-      a, b);
+  contact.setContactPosition(positionB + normal * b.getRadius());
 
   contact.setPenetrationDepth(a.getRadius() + b.getRadius() - distance);
   contacts.push_back(contact);
@@ -64,9 +67,7 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
   contact.setContactNormal(contactNormal);
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
-  contact.setContactPosition(
-      {-circle.getRadius() * contactNormal + circleCenter, closestPointWorld},
-      circle, box);
+  contact.setContactPosition(closestPointWorld);
   contacts.push_back(contact);
   return true;
 }
@@ -109,9 +110,7 @@ bool Collider::sphereAndRectangle(Box &box, Circle &circle,
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
   contact.setContactNormal(-contactNormal);
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
-  contact.setContactPosition(
-      {-circle.getRadius() * contactNormal + circleCenter, closestPointWorld},
-      circle, box);
+  contact.setContactPosition(closestPointWorld);
   contacts.push_back(contact);
   return true;
 }
@@ -136,8 +135,8 @@ bool Collider::collide(RigidBody2D &bodyA, RigidBody2D &bodyB,
   }
   if (typeA == RigidBody2DType::BOX && typeB == RigidBody2DType::BOX) {
 
-    return findContactManifold(static_cast<Box &>(bodyA),
-                               static_cast<Box &>(bodyB), contacts);
+    return rectangleAndRectangle(static_cast<Box &>(bodyA),
+                                 static_cast<Box &>(bodyB), contacts);
   }
 }
 
@@ -206,21 +205,22 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
     }
   }
   normal_ = -minNormal;
-  // for (int i = 0; i < simplex.size(); i++) {
-  //   auto line = {simplex[i], simplex[(i + 1) % simplex.size()]};
-  //   plotLine(line, *window, sf::Color::Red);
-  // }
-  // for (auto point : shapeA.getVertices()) {
-  //   for (auto pointB : shapeB.getVertices()) {
-  //     showPoints(*window, {point - pointB});
-  //   }
-  // }
-
+  if (Visual::isDebug) {
+    for (int i = 0; i < simplex.size(); i++) {
+      auto line = {simplex[i], simplex[(i + 1) % simplex.size()]};
+      plotLine(line, Visual::window, sf::Color::Red);
+    }
+    for (auto point : shapeA.getVertices()) {
+      for (auto pointB : shapeB.getVertices()) {
+        showPoints(Visual::window, {point - pointB});
+      }
+    }
+  }
   return minDistance;
 }
 
-bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
-                                   std::vector<Contact> &contacts) {
+bool Collider::rectangleAndRectangle(Box &shapeA, Box &shapeB,
+                                     std::vector<Contact> &contacts) {
   // SH alghortihm for cliping (Sutherland-Hodgman);
   std::vector<sf::Vector2f> simplex;
   if (!GJKintersectionPP(shapeA, shapeB, simplex)) {
@@ -262,7 +262,9 @@ bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
   clip(incidentFace, adjacentEdges[1]);
   clip(incidentFace, {referenceFace[0], referenceFace[1]}, false);
 
-  // showPoints(*window, incidentFace, sf::Color::Magenta);
+  if (Visual::isDebug) {
+    showPoints(Visual::window, incidentFace, sf::Color::Magenta);
+  }
 
   // Step 4. Update Contacts
   for (auto &point : incidentFace) {
@@ -270,11 +272,9 @@ bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
     contact.setPenetrationDepth(penetrationDepth);
     contact.setContactNormal(normal);
     if (isReferenceA) {
-      contact.setContactPosition({point - normal * penetrationDepth, point},
-                                 shapeA, shapeB);
+      contact.setContactPosition(point);
     } else {
-      contact.setContactPosition({point, point + normal * penetrationDepth},
-                                 shapeA, shapeB);
+      contact.setContactPosition(point);
     }
     contacts.push_back(contact);
   }
@@ -311,14 +311,16 @@ void Collider::clip(std::vector<sf::Vector2f> &polygonToClip,
   sf::Vector2f edgeNormal = -perpendicular(normalise(edgeVector));
   std::vector<sf::Vector2f> tempVec;
   std::array<sf::Vector2f, 2> nn = {edge[0], edgeNormal};
-  // plotLine(nn, *window);
-  // if (createNewPoint) {
+  if (Visual::isDebug) {
+    plotLine(nn, Visual::window);
+    if (createNewPoint) {
 
-  //   plotLine(edge, *window);
-  // } else {
+      plotLine(edge, Visual::window);
+    } else {
 
-  //   plotLine(edge, *window, sf::Color::Cyan);
-  // }
+      plotLine(edge, Visual::window, sf::Color::Cyan);
+    }
+  }
 
   for (auto vertex : polygonToClip) {
     if (dot((vertex - edge[0]), edgeNormal) >= 0) {
