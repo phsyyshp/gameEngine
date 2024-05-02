@@ -34,16 +34,18 @@ public:
 
   void update(std::vector<Contact> &newContacts) {
     // contacts = newContacts;
-    float threshold = 1.f;
+    float threshold = 3.f;
     for (auto &contact : contacts) {
       for (auto &newContact : newContacts) {
         float positionDifference = magnitude(contact.getContactPosition() -
                                              newContact.getContactPosition());
         if (std::abs(positionDifference) < threshold &&
-            newContact.getPenetrationDepth() > 0.F) {
+            std::abs(newContact.getPenetrationDepth() -
+                     contact.getPenetrationDepth()) < 3.F) {
           if (Collider::warmStart) {
 
-            newContact.setTotalImpulseNormal(contact.getTotalImpulseNormal());
+            newContact.setTotalImpulseNormal(0.9F *
+                                             contact.getTotalImpulseNormal());
           } else {
             newContact.setTotalImpulseNormal(0.F);
           }
