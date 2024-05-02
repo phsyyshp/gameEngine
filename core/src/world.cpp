@@ -1,11 +1,4 @@
 #include "world.hpp"
-#include "collisionHandler.hpp"
-#include "contact.hpp"
-#include "rigidBody2D.hpp"
-#include <SFML/System/Sleep.hpp>
-#include <SFML/System/Time.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <memory>
 void World::startFrame() {
   // for (auto &body : bodies) {
   //   body.clearAccumulators();
@@ -15,14 +8,14 @@ void World::runPhysics(float deltaTime, int subStep) {
 
   // setSleepers();
   findContacts();
-
+  // FIX IT: implement a sleep system
   for (auto &body : bodies) {
     if (!body->isAwake()) {
       continue;
     }
     for (auto &forceGenerator : gravity) {
       forceGenerator.updateForce(*body, deltaTime);
-      body->integrateForces(deltaTime);
+      // body->integrateForces(deltaTime);
     }
   }
   for (auto &[key, manifold] : manifolds) {
@@ -37,9 +30,13 @@ void World::runPhysics(float deltaTime, int subStep) {
       for (auto &contact : manifold.getContacts()) {
         float lagrangianMultiplier =
             manifold.solveContactConstraints(contact, deltaTime);
-        manifold.applyVelocityChange(lagrangianMultiplier, contact);
+        // manifold.applyVelocityChange(lagrangianMultiplier, contact);
+        totalChange = lagrangianMultiplier;
       }
     }
+    std::cout << "change is: " << totalChange << "iteration: " << i
+              << std::endl;
+    i++;
   } while (totalChange > 1.2F && i < 1000);
   for (auto &body : bodies) {
     body->integrateVelocities(deltaTime);
@@ -69,14 +66,11 @@ void World::findContacts() {
       ManifoldKey manifoldKey(*bodies[i], *bodies[j]);
       // std::cout << "manifold size is: " << manifold.size() << std::endl;
       if (manifold.size() > 0) {
-        std::cout << "checking stuff" << std::endl;
         auto manIt = manifolds.find(manifoldKey);
         if (manIt == manifolds.end()) {
-
           std::cout << "new manifold" << std::endl;
           manifolds.insert(std::make_pair(manifoldKey, manifold));
         } else {
-
           std::cout << "existing manifold" << std::endl;
           manIt->second.update(manifold.getContacts());
         }
@@ -106,14 +100,15 @@ void World::showContacts(std::map<ManifoldKey, Manifold> &manifolds) {
       float radius = 2.f;
 
       sf::CircleShape ax(radius);
-      auto contactPoint = contact.getContactPosition()[0];
+      auto contactPoint = contact.getContactPosition();
       ax.setFillColor(sf::Color::Green);
       ax.setPosition(contactPoint);
       ax.setOrigin(radius, radius);
       window->draw(ax);
       std::array<sf::Vertex, 2> line = {
           sf::Vertex(contactPoint, sf::Color::Green),
-          sf::Vertex(contactPoint + contact.getContactNormal() * 10.f,
+          sf::Vertex(contactPoint + contact.getContactNormal() *
+                                        contact.getPenetrationDepth(),
                      sf::Color::Green),
       };
       window->draw(line.data(), 2, sf::Lines);

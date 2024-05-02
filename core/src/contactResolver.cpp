@@ -1,8 +1,4 @@
 #include "contactResolver.hpp"
-#include "contact.hpp"
-#include <SFML/System/Vector2.hpp>
-#include <array>
-#include <limits>
 
 void ContactResolver::sequentialImpulse(
     std::map<ManifoldKey, Manifold> manifolds, float deltaTime) {
