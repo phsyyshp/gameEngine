@@ -1,12 +1,11 @@
 #include "collisionHandler.hpp"
+#include "visuals.hpp"
+
+const bool Collider::warmStart = false;
+const bool Collider::accumulateImpulse = true;
+
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                std::vector<Contact> &contacts) {
-  if (!(a.isAwake()) && !(b.isAwake())) {
-    return false;
-  }
-  if (a.getInverseMass() == 0 && b.getInverseMass() == 0) {
-    return false;
-  }
   sf::Vector2f positionA = a.RigidBody2D::getPosition();
   sf::Vector2f positionB = b.RigidBody2D::getPosition();
   sf::Vector2f midLine = positionA - positionB;
@@ -18,9 +17,7 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
   Contact contact;
 
   contact.setContactNormal(normal);
-  contact.setContactPosition(
-      {positionA - normal * a.getRadius(), positionB + normal * b.getRadius()},
-      a, b);
+  contact.setContactPosition(positionB + normal * b.getRadius());
 
   contact.setPenetrationDepth(a.getRadius() + b.getRadius() - distance);
   contacts.push_back(contact);
@@ -28,10 +25,6 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
 }
 bool Collider::sphereAndRectangle(Circle &circle, Box &box,
                                   std::vector<Contact> &contacts) {
-  if (!(circle.isAwake()) && !(box.isAwake())) {
-    return false;
-  }
-  // Transform the centre of the sphere into box coordinates
   sf::Vector2f circleCenter = circle.RigidBody2D::getPosition();
   sf::Vector2f boxCenter = box.RigidBody2D::getPosition();
   sf::Vector2f relCenter = transformToCordinateSystem(
@@ -42,40 +35,31 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
       std::abs(relCenter.y) - circle.getRadius() > box.getHalfSize().y) {
     return false;
   }
+  // check if in contact
   sf::Vector2f closestPoint(0, 0);
-  // Clamp each coordinate to the box.
   closestPoint.x =
       std::clamp(relCenter.x, -box.getHalfSize().x, box.getHalfSize().x);
   closestPoint.y =
       std::clamp(relCenter.y, -box.getHalfSize().y, box.getHalfSize().y);
-  // Check we're in contact
   sf::Vector2f cp2center = closestPoint - relCenter;
   float distance = cp2center.x * cp2center.x + cp2center.y * cp2center.y;
   if (distance > circle.getRadius() * circle.getRadius()) {
     return false;
   }
-
-  // Compile the contact
   sf::Vector2f closestPointWorld = inverseTransformToCordinateSystem(
       closestPoint, boxCenter, box.RigidBody2D::getOrientation());
-  // closestPointWorld = closestPoint + boxCenter;
+  // update Contacts
   Contact contact;
-
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
   contact.setContactNormal(contactNormal);
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
-  contact.setContactPosition(
-      {-circle.getRadius() * contactNormal + circleCenter, closestPointWorld},
-      circle, box);
+  contact.setContactPosition(closestPointWorld);
   contacts.push_back(contact);
   return true;
 }
 
 bool Collider::sphereAndRectangle(Box &box, Circle &circle,
                                   std::vector<Contact> &contacts) {
-  if (!(circle.isAwake()) && !(box.isAwake())) {
-    return false;
-  }
   // Transform the centre of the sphere into box coordinates
   sf::Vector2f circleCenter = circle.RigidBody2D::getPosition();
   sf::Vector2f boxCenter = box.RigidBody2D::getPosition();
@@ -109,9 +93,7 @@ bool Collider::sphereAndRectangle(Box &box, Circle &circle,
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
   contact.setContactNormal(-contactNormal);
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
-  contact.setContactPosition(
-      {-circle.getRadius() * contactNormal + circleCenter, closestPointWorld},
-      circle, box);
+  contact.setContactPosition(closestPointWorld);
   contacts.push_back(contact);
   return true;
 }
@@ -136,8 +118,8 @@ bool Collider::collide(RigidBody2D &bodyA, RigidBody2D &bodyB,
   }
   if (typeA == RigidBody2DType::BOX && typeB == RigidBody2DType::BOX) {
 
-    return findContactManifold(static_cast<Box &>(bodyA),
-                               static_cast<Box &>(bodyB), contacts);
+    return rectangleAndRectangle(static_cast<Box &>(bodyA),
+                                 static_cast<Box &>(bodyB), contacts);
   }
 }
 
@@ -171,10 +153,11 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
                                              Box &shapeA, Box &shapeB,
                                              sf::Vector2f &normal_) {
   //  EPA (Expanding Polytope Algorithm);
+  // std::cout << simplex.size() << std::endl;
   if (simplex.size() > 3) {
     simplex.pop_back();
   }
-  //  here simplex contains origin, and have 3 edges.
+  //  Here simplex contains origin, and have 3 edges.
   float minDistance = std::numeric_limits<float>::max();
   sf::Vector2f minNormal{0.F, 0.F};
   int minIndex = 0;
@@ -185,17 +168,20 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
       sf::Vector2f sidei = simplex[j] - simplex[i];
       sf::Vector2f normal = normalise(-perpendicular(sidei));
       float distance = dot(normal, simplex[i]);
-
-      if (distance < 0) {
+      if (distance < 0.F) {
         distance *= -1.F;
         normal *= -1.F;
       }
-
       if (minDistance > distance) {
         minDistance = distance;
         minNormal = normal;
         minIndex = j;
       }
+      if (std::abs(distance) <= 1e-3F) {
+        return 0.001F;
+      }
+
+      // std::cout << "md" << distance << "\n";
     }
     sf::Vector2f newVertex =
         shapeA.getSupport(minNormal) - shapeB.getSupport(-minNormal);
@@ -205,22 +191,24 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
       simplex.insert(simplex.begin() + minIndex, newVertex);
     }
   }
-  normal_ = -minNormal;
-  // for (int i = 0; i < simplex.size(); i++) {
-  //   auto line = {simplex[i], simplex[(i + 1) % simplex.size()]};
-  //   plotLine(line, *window, sf::Color::Red);
-  // }
-  // for (auto point : shapeA.getVertices()) {
-  //   for (auto pointB : shapeB.getVertices()) {
-  //     showPoints(*window, {point - pointB});
-  //   }
-  // }
-
+  normal_ = -minNormal; // from b->a
+  // Visualising the simplex and mDiff
+  if (Visual::isDebug) {
+    for (int i = 0; i < simplex.size(); i++) {
+      auto line = {simplex[i], simplex[(i + 1) % simplex.size()]};
+      plotLine(line, Visual::window, sf::Color::Red);
+    }
+    for (auto point : shapeA.getVertices()) {
+      for (auto pointB : shapeB.getVertices()) {
+        showPoints(Visual::window, {point - pointB});
+      }
+    }
+  }
   return minDistance;
 }
 
-bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
-                                   std::vector<Contact> &contacts) {
+bool Collider::rectangleAndRectangle(Box &shapeA, Box &shapeB,
+                                     std::vector<Contact> &contacts) {
   // SH alghortihm for cliping (Sutherland-Hodgman);
   std::vector<sf::Vector2f> simplex;
   if (!GJKintersectionPP(shapeA, shapeB, simplex)) {
@@ -262,7 +250,9 @@ bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
   clip(incidentFace, adjacentEdges[1]);
   clip(incidentFace, {referenceFace[0], referenceFace[1]}, false);
 
-  // showPoints(*window, incidentFace, sf::Color::Magenta);
+  if (Visual::isDebug) {
+    showPoints(Visual::window, incidentFace, sf::Color::Magenta);
+  }
 
   // Step 4. Update Contacts
   for (auto &point : incidentFace) {
@@ -270,11 +260,9 @@ bool Collider::findContactManifold(Box &shapeA, Box &shapeB,
     contact.setPenetrationDepth(penetrationDepth);
     contact.setContactNormal(normal);
     if (isReferenceA) {
-      contact.setContactPosition({point - normal * penetrationDepth, point},
-                                 shapeA, shapeB);
+      contact.setContactPosition(point);
     } else {
-      contact.setContactPosition({point, point + normal * penetrationDepth},
-                                 shapeA, shapeB);
+      contact.setContactPosition(point);
     }
     contacts.push_back(contact);
   }
@@ -311,14 +299,16 @@ void Collider::clip(std::vector<sf::Vector2f> &polygonToClip,
   sf::Vector2f edgeNormal = -perpendicular(normalise(edgeVector));
   std::vector<sf::Vector2f> tempVec;
   std::array<sf::Vector2f, 2> nn = {edge[0], edgeNormal};
-  // plotLine(nn, *window);
-  // if (createNewPoint) {
+  if (Visual::isDebug) {
+    plotLine(nn, Visual::window);
+    if (createNewPoint) {
 
-  //   plotLine(edge, *window);
-  // } else {
+      plotLine(edge, Visual::window);
+    } else {
 
-  //   plotLine(edge, *window, sf::Color::Cyan);
-  // }
+      plotLine(edge, Visual::window, sf::Color::Cyan);
+    }
+  }
 
   for (auto vertex : polygonToClip) {
     if (dot((vertex - edge[0]), edgeNormal) >= 0) {
