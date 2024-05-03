@@ -1,8 +1,6 @@
 #pragma once
-#include "rigidBody2D.hpp"
 #include <SFML/System/Vector2.hpp>
 #include <array>
-#include <memory>
 
 class Contact {
 public:

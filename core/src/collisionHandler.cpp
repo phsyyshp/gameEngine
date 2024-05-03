@@ -1,17 +1,11 @@
 #include "collisionHandler.hpp"
 #include "visuals.hpp"
 
-const bool Collider::warmStart = true;
+const bool Collider::warmStart = false;
 const bool Collider::accumulateImpulse = true;
 
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                std::vector<Contact> &contacts) {
-  if (!(a.isAwake()) && !(b.isAwake())) {
-    return false;
-  }
-  if (a.getInverseMass() == 0 && b.getInverseMass() == 0) {
-    return false;
-  }
   sf::Vector2f positionA = a.RigidBody2D::getPosition();
   sf::Vector2f positionB = b.RigidBody2D::getPosition();
   sf::Vector2f midLine = positionA - positionB;
@@ -31,10 +25,6 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
 }
 bool Collider::sphereAndRectangle(Circle &circle, Box &box,
                                   std::vector<Contact> &contacts) {
-  if (!(circle.isAwake()) && !(box.isAwake())) {
-    return false;
-  }
-  // Transform the centre of the sphere into box coordinates
   sf::Vector2f circleCenter = circle.RigidBody2D::getPosition();
   sf::Vector2f boxCenter = box.RigidBody2D::getPosition();
   sf::Vector2f relCenter = transformToCordinateSystem(
@@ -45,25 +35,21 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
       std::abs(relCenter.y) - circle.getRadius() > box.getHalfSize().y) {
     return false;
   }
+  // check if in contact
   sf::Vector2f closestPoint(0, 0);
-  // Clamp each coordinate to the box.
   closestPoint.x =
       std::clamp(relCenter.x, -box.getHalfSize().x, box.getHalfSize().x);
   closestPoint.y =
       std::clamp(relCenter.y, -box.getHalfSize().y, box.getHalfSize().y);
-  // Check we're in contact
   sf::Vector2f cp2center = closestPoint - relCenter;
   float distance = cp2center.x * cp2center.x + cp2center.y * cp2center.y;
   if (distance > circle.getRadius() * circle.getRadius()) {
     return false;
   }
-
-  // Compile the contact
   sf::Vector2f closestPointWorld = inverseTransformToCordinateSystem(
       closestPoint, boxCenter, box.RigidBody2D::getOrientation());
-  // closestPointWorld = closestPoint + boxCenter;
+  // update Contacts
   Contact contact;
-
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
   contact.setContactNormal(contactNormal);
   contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
@@ -74,9 +60,6 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
 
 bool Collider::sphereAndRectangle(Box &box, Circle &circle,
                                   std::vector<Contact> &contacts) {
-  if (!(circle.isAwake()) && !(box.isAwake())) {
-    return false;
-  }
   // Transform the centre of the sphere into box coordinates
   sf::Vector2f circleCenter = circle.RigidBody2D::getPosition();
   sf::Vector2f boxCenter = box.RigidBody2D::getPosition();
@@ -174,7 +157,7 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
   if (simplex.size() > 3) {
     simplex.pop_back();
   }
-  //  here simplex contains origin, and have 3 edges.
+  //  Here simplex contains origin, and have 3 edges.
   float minDistance = std::numeric_limits<float>::max();
   sf::Vector2f minNormal{0.F, 0.F};
   int minIndex = 0;
@@ -185,21 +168,20 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
       sf::Vector2f sidei = simplex[j] - simplex[i];
       sf::Vector2f normal = normalise(-perpendicular(sidei));
       float distance = dot(normal, simplex[i]);
-
-      // std::cout << "md" << distance << "\n";
-      if (std::abs(distance) <= 1e-3F) {
-        return 0.001F;
-      }
-      if (distance < 0) {
+      if (distance < 0.F) {
         distance *= -1.F;
         normal *= -1.F;
       }
-
       if (minDistance > distance) {
         minDistance = distance;
         minNormal = normal;
         minIndex = j;
       }
+      if (std::abs(distance) <= 1e-3F) {
+        return 0.001F;
+      }
+
+      // std::cout << "md" << distance << "\n";
     }
     sf::Vector2f newVertex =
         shapeA.getSupport(minNormal) - shapeB.getSupport(-minNormal);
@@ -209,7 +191,7 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
       simplex.insert(simplex.begin() + minIndex, newVertex);
     }
   }
-  normal_ = -minNormal;
+  normal_ = -minNormal; // from b->a
   // Visualising the simplex and mDiff
   if (Visual::isDebug) {
     for (int i = 0; i < simplex.size(); i++) {

@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<Box> mbox = std::make_unique<Box>(400, 605, 800, 100);
   std::unique_ptr<Box> mboxLeft = std::make_unique<Box>(0, 250, 100, 600);
   std::unique_ptr<Box> mboxRight = std::make_unique<Box>(600, 250, 100, 600);
-  std::unique_ptr<Box> box1 = std::make_unique<Box>(200, 100, 100, 50);
+  std::unique_ptr<Box> box1 = std::make_unique<Box>(200, 100, 200, 25);
   std::unique_ptr<Circle> circle = std::make_unique<Circle>(400, 300, 30);
   mbox->setInverseInertia(0.F);
   mboxLeft->setInverseInertia(0.F);
