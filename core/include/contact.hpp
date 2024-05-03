@@ -1,43 +1,39 @@
-
-
 #pragma once
-#include "rigidBody2D.hpp"
-#include "utils.hpp"
 #include <SFML/System/Vector2.hpp>
+#include <array>
 
 class Contact {
-  static RigidBody2D emptyBody;
-
 public:
-  Contact(RigidBody2D &a = emptyBody, RigidBody2D &b = emptyBody)
-      : bodies{a, b} {}
-  sf::Vector2f calculateFrictionlessImpulse();
+  Contact() = default;
 
-  void applyImpulse(float);
   // getters declare:
-  sf::Vector2f getContactPoint() const;
+  sf::Vector2f getContactPosition() const;
   sf::Vector2f getContactNormal() const;
   float getPenetrationDepth() const;
-  std::array<std::reference_wrapper<RigidBody2D>, 2> &getBodies();
   float getFriction() const;
   float getResitution() const;
+  float getTotalImpulseNormal();
+  float getBias();
+  std::array<sf::Vector2f, 2> getLocalContactPosition() const;
   // setters declare:
-  void setContactPoint(const sf::Vector2f &);
+  void setContactPosition(const sf::Vector2f &contactPosition_);
   void setContactNormal(const sf::Vector2f &);
   void setPenetrationDepth(float);
   void setFriction(float);
   void setResitution(float);
+  void setTotalImpulseNormal(float totalImpulseNormal);
+  void setBias(float);
 
-  void applyVelocityChange();
-  void applyPositionChange(std::array<sf::Vector2f, 2> &);
-  void applyVelocityChangeSphereSphere();
-  sf::Vector2f calculateFrictionlessImpulseSphereSphere();
+  void makePersistent();
+  bool isPersistent() const;
 
 private:
-  sf::Vector2f contactPoint;
-  sf::Vector2f contactNormal;
-  float penetrationDepth;
-  std::array<std::reference_wrapper<RigidBody2D>, 2> bodies;
+  sf::Vector2f contactPosition = {};
+  sf::Vector2f contactNormal; // Always from B to A;
+  float normalImpulseSum = 0.F;
+  float penetrationDepth = 0.F;
   float friction;
-  float resitution = 0.5f;
+  float resitution = 0.5F;
+  bool persistent = false;
+  float bias = 0.F;
 };

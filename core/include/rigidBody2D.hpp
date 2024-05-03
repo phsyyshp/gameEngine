@@ -1,11 +1,15 @@
 #pragma once
+#include "utils.hpp"
 #include <SFML/Graphics.hpp>
+
 #include <iostream>
+enum RigidBody2DType { CIRCLE, BOX, POLYGON, rb };
 class RigidBody2D {
 
 public:
   RigidBody2D(float x, float y) : position(x, y) {}
-
+  virtual ~RigidBody2D(){};
+  virtual RigidBody2DType type() { return RigidBody2DType::rb; }
   void addForce(const sf::Vector2f &);
   // getters
   float getInverseMass() const;
@@ -15,6 +19,9 @@ public:
   void setOrientation(float);
   void addDisplacement(const sf::Vector2f &);
   void integrate(float deltaTime);
+  void integrateForces(float deltaTime);
+  void integrateVelocities(float deltaTime);
+
   void clearAccumulators();
 
   void addForceAtPoint(const sf::Vector2f &force, const sf::Vector2f &point);
@@ -30,6 +37,8 @@ public:
   void setAwakeTimer(int);
   void wakeUp();
   void sleep();
+
+  sf::Vector2f localToGlobal(const sf::Vector2f &localPoint) const;
 
 private:
   float inverseMass = 0.F;

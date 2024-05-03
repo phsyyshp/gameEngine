@@ -46,7 +46,7 @@ int main() {
   Circle mcirc(-850, 100, 1000);
   mcirc.setPointCount(200);
   mcirc0.setPointCount(200);
-
+  float userAdedRotation = 0.f;
   Circle mcirc2(1370, 300, 1000);
 
   mcirc2.setPointCount(200);
@@ -70,7 +70,7 @@ int main() {
   Box box2(400, 100, 100, 50);
   box1.setInverseMass(0.05f);
   box2.setInverseMass(0.05f);
-  box1.setOrientation(M_PI / 3);
+  box2.setOrientation(M_PI / 8);
   boxes.push_back(box1);
   boxes.push_back(box2);
   box1.setFillColor(sf::Color::Red);
@@ -106,15 +106,18 @@ int main() {
           userAdedVelocity += {1000.f, 0.f};
         }
         if (event.key.code == sf::Keyboard::Up) {
-          userAdedVelocity = {0.f, -1000.f};
+          userAdedVelocity += {0.f, -1000.f};
         }
         if (event.key.code == sf::Keyboard::Down) {
-          userAdedVelocity = {0.f, 1000.f};
+          userAdedVelocity += {0.f, 1000.f};
+        }
+        if (event.key.code == sf::Keyboard::Space) {
+          userAdedRotation += M_PI / 10;
         }
       }
     }
     // std::cout << "Number of circles: " << circles.size() << "\n";
-    int subStep = 1;
+    int subStep = 10;
 
     sf::CircleShape cpx(5.f);
     std::array<sf::Vertex, 2> line;
@@ -141,37 +144,32 @@ int main() {
           }
           showVertices(window, verticesB);
           showVertices(window, boxA.getVertices(), sf::Color::Blue);
-          line = showConnectionNormal(
-              window, (cd.contacts.end() - 1)->getContactPoint(),
-              (cd.contacts.end() - 1)->getContactNormal());
+          // line = showConnectionNormal(
+          //     window, (cd.contacts.end() - 1)->getContactPoint(),
+          //     (cd.contacts.end() - 1)->getContactNormal());
           // }
           //   Collider::rectangleAndRectangle(boxes[j], boxes[i], cd);
         }
       }
       // draw all contacts
-      for (auto cons : cd.contacts) {
-        sf::CircleShape ax(5.f);
-        ax.setFillColor(sf::Color::Green);
-        ax.setPosition(cons.getContactPoint());
-        ax.setOrigin(5, 5);
-        window.draw(ax);
-        std::array<sf::Vertex, 2> line = {
-            sf::Vertex(cons.getContactPoint(), sf::Color::Green),
-            sf::Vertex(cons.getContactPoint() +
-                           cons.getContactNormal() * cons.getPenetrationDepth(),
-                       sf::Color::Green),
-        };
-        window.draw(line.data(), 2, sf::Lines);
-      }
-      while (window.pollEvent(event)) {
-        if (event.type == sf::Event::KeyPressed) {
-
-          if (event.key.code == sf::Keyboard::W) {
-
-            contactResolver.resolveContacts(cd, deltaTime);
-          }
+      for (auto &mans : cd.getContactManifolds()) {
+        for (auto cons : mans.getContacts()) {
+          sf::CircleShape ax(5.f);
+          ax.setFillColor(sf::Color::Green);
+          ax.setPosition(cons.getContactPoint());
+          ax.setOrigin(5, 5);
+          window.draw(ax);
+          std::array<sf::Vertex, 2> line = {
+              sf::Vertex(cons.getContactPoint(), sf::Color::Green),
+              sf::Vertex(cons.getContactPoint() +
+                             cons.getContactNormal() *
+                                 std::abs(cons.getPenetrationDepth()),
+                         sf::Color::Green),
+          };
+          window.draw(line.data(), 2, sf::Lines);
         }
       }
+
       // contactResolver.resolveContacts(cd, deltaTime / subStep);
       cd.clear();
       boxes[3].addVelocity(userAdedVelocity);
@@ -181,6 +179,7 @@ int main() {
       }
       boxes[3].addVelocity(-userAdedVelocity);
     }
+    boxes[3].setOrientation(userAdedRotation);
 
     for (auto &box : boxes) {
       box.setFillColor(sf::Color::Transparent);
