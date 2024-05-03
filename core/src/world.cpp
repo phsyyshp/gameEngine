@@ -1,6 +1,8 @@
 #include "world.hpp"
+#include "rigidBody2D.hpp"
 #include <SFML/System/Sleep.hpp>
 #include <SFML/System/Time.hpp>
+#include <memory>
 void World::startFrame() {
   // for (auto &body : bodies) {
   //   body.clearAccumulators();
@@ -36,15 +38,20 @@ void World::runPhysics(float deltaTime, int subStep) {
         manifold.applyVelocityChange(lagrangianMultiplier, contact);
         lastChange = lagrangianMultiplier;
         totalChange = contact.getTotalImpulseNormal();
-        // std::cout << "Total change is: " << totalChange
-        //           << "last change is: " << lastChange << "iteration: " << i
-        //           << "\n";
         // sf::sleep(sf::seconds(0.1F));
       }
     }
+    // FIX IT: this is just a hack fix it properly.
+    if (totalChange == 0) {
+      break;
+    }
     i++;
     // std::cout << "total it" << i << "\n";
-  } while (std::abs(lastChange) / totalChange > 0.001F && i < 1000);
+  } while (std::abs(lastChange) / (totalChange) > 0.001F && i < 1000);
+
+  // std::cout << "Total change is: " << totalChange
+  //           << " last change is: " << lastChange << " iteration: " << i <<
+  //           "\n";
   for (auto &body : bodies) {
     body->integrateVelocities(deltaTime);
   }
@@ -97,6 +104,23 @@ void World::setSleepers() {
           body->sleep();
         }
       }
+    }
+  }
+}
+void World::solveIslands() {
+  for (auto &body : bodies) {
+    body->clearMark();
+  }
+  for (auto &[key, manifold] : manifolds) {
+    manifold->clearMark();
+  }
+  Island island;
+  for (auto &body : bodies) {
+    if (body->isMarked() && body->isDynamic() && body->isAwake()) {
+      island.clear();
+      body->mark();
+      std::vector<std::unique_ptr<RigidBody2D>> stack;
+      stack.push_back(std::move(body));
     }
   }
 }

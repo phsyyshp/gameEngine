@@ -16,10 +16,10 @@ set(COLLIDER_SPHERE_DEMO_SOURCES
 demos/colliderSphereSphereDemo.cpp
 core/src/collisionHandler.cpp
 core/src/utils.cpp
+core/src/manifold.cpp
 core/src/contact.cpp
 core/src/rigidBody2D.cpp
 core/src/forceGeneration.cpp
-core/src/contactResolver.cpp
 core/src/visuals.cpp
 core/src/world.cpp)
 
@@ -59,8 +59,8 @@ core/src/utils.cpp
 core/src/contact.cpp
 core/src/rigidBody2D.cpp
 core/src/forceGeneration.cpp
-core/src/contactResolver.cpp
 core/src/visuals.cpp
+core/src/manifold.cpp
 core/src/world.cpp)
 
 add_executable(gjkTests ${gjkTest_SOURCES})

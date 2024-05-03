@@ -180,8 +180,6 @@ float Collider::findContactNormalPenetration(std::vector<sf::Vector2f> &simplex,
       if (std::abs(distance) <= 1e-3F) {
         return 0.001F;
       }
-
-      // std::cout << "md" << distance << "\n";
     }
     sf::Vector2f newVertex =
         shapeA.getSupport(minNormal) - shapeB.getSupport(-minNormal);
@@ -299,6 +297,7 @@ void Collider::clip(std::vector<sf::Vector2f> &polygonToClip,
   sf::Vector2f edgeNormal = -perpendicular(normalise(edgeVector));
   std::vector<sf::Vector2f> tempVec;
   std::array<sf::Vector2f, 2> nn = {edge[0], edgeNormal};
+  // debug visualization
   if (Visual::isDebug) {
     plotLine(nn, Visual::window);
     if (createNewPoint) {

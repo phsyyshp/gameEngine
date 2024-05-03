@@ -14,7 +14,6 @@ void Contact::setContactNormal(const sf::Vector2f &contactNormal_) {
 void Contact::setContactPosition(const sf::Vector2f &contactPosition_) {
   this->contactPosition = contactPosition_;
 }
-
 void Contact::setPenetrationDepth(float penetrationDepth_) {
   penetrationDepth = penetrationDepth_;
 }
@@ -25,5 +24,3 @@ void Contact::setTotalImpulseNormal(float totalImpulseNormal_) {
   normalImpulseSum = totalImpulseNormal_;
 }
 void Contact::setBias(float bias_) { bias = bias_; }
-void Contact::makePersistent() { persistent = true; }
-bool Contact::isPersistent() const { return persistent; }

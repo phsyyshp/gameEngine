@@ -1,5 +1,5 @@
-#include "contactResolver.hpp"
 #include "forceGeneration.hpp"
+#include "manifold.hpp"
 #include "rigidBody2D.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
 #include <SFML/System/Sleep.hpp>
@@ -22,7 +22,7 @@ public:
   const std::map<ManifoldKey, Manifold> &getManifolds() const;
 
   void findContacts();
-  void resolveCollisions();
+  void solveIslands();
   void setSleepers();
 
   void setWindow(sf::RenderWindow &window);
@@ -31,7 +31,6 @@ public:
 
 private:
   std::vector<std::unique_ptr<RigidBody2D>> bodies;
-  ContactResolver contactResolver;
   std::vector<Gravity> gravity;
   std::map<ManifoldKey, Manifold> manifolds;
   bool isDebug = false;
