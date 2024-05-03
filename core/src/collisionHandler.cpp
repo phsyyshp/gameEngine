@@ -15,11 +15,9 @@ bool Collider::sphereAndSphere(Circle &a, Circle &b,
   }
   sf::Vector2f normal = midLine / distance;
   Contact contact;
-
-  contact.setContactNormal(normal);
-  contact.setContactPosition(positionB + normal * b.getRadius());
-
-  contact.setPenetrationDepth(a.getRadius() + b.getRadius() - distance);
+  contact.normal = normal;
+  contact.position = positionB + normal * b.getRadius();
+  contact.penetrationDepth = a.getRadius() + b.getRadius() - distance;
   contacts.push_back(contact);
   return true;
 }
@@ -51,9 +49,9 @@ bool Collider::sphereAndRectangle(Circle &circle, Box &box,
   // update Contacts
   Contact contact;
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
-  contact.setContactNormal(contactNormal);
-  contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
-  contact.setContactPosition(closestPointWorld);
+  contact.normal = contactNormal;
+  contact.penetrationDepth = circle.getRadius() - std::sqrt(distance);
+  contact.position = closestPointWorld;
   contacts.push_back(contact);
   return true;
 }
@@ -91,9 +89,9 @@ bool Collider::sphereAndRectangle(Box &box, Circle &circle,
   Contact contact;
 
   sf::Vector2f contactNormal = normalise(-closestPointWorld + circleCenter);
-  contact.setContactNormal(-contactNormal);
-  contact.setPenetrationDepth(circle.getRadius() - std::sqrt(distance));
-  contact.setContactPosition(closestPointWorld);
+  contact.normal = -contactNormal;
+  contact.penetrationDepth = circle.getRadius() - std::sqrt(distance);
+  contact.position = closestPointWorld;
   contacts.push_back(contact);
   return true;
 }
@@ -255,12 +253,12 @@ bool Collider::rectangleAndRectangle(Box &shapeA, Box &shapeB,
   // Step 4. Update Contacts
   for (auto &point : incidentFace) {
     Contact contact;
-    contact.setPenetrationDepth(penetrationDepth);
-    contact.setContactNormal(normal);
+    contact.penetrationDepth = penetrationDepth;
+    contact.normal = normal;
     if (isReferenceA) {
-      contact.setContactPosition(point);
+      contact.position = point;
     } else {
-      contact.setContactPosition(point);
+      contact.position = point;
     }
     contacts.push_back(contact);
   }

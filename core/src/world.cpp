@@ -37,7 +37,7 @@ void World::runPhysics(float deltaTime, int subStep) {
             manifold.solveContactConstraints(contact, deltaTime);
         manifold.applyVelocityChange(lagrangianMultiplier, contact);
         lastChange = lagrangianMultiplier;
-        totalChange = contact.getTotalImpulseNormal();
+        totalChange = contact.totalImpulse;
         // sf::sleep(sf::seconds(0.1F));
       }
     }
@@ -131,15 +131,14 @@ void World::showContacts(std::map<ManifoldKey, Manifold> &manifolds) {
       float radius = 2.f;
 
       sf::CircleShape ax(radius);
-      auto contactPoint = contact.getContactPosition();
+      auto contactPoint = contact.position;
       ax.setFillColor(sf::Color::Green);
       ax.setPosition(contactPoint);
       ax.setOrigin(radius, radius);
       window->draw(ax);
       std::array<sf::Vertex, 2> line = {
           sf::Vertex(contactPoint, sf::Color::Green),
-          sf::Vertex(contactPoint + contact.getContactNormal() *
-                                        contact.getPenetrationDepth(),
+          sf::Vertex(contactPoint + contact.normal * contact.penetrationDepth,
                      sf::Color::Green),
       };
       window->draw(line.data(), 2, sf::Lines);
