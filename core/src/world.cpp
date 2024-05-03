@@ -36,14 +36,15 @@ void World::runPhysics(float deltaTime, int subStep) {
         manifold.applyVelocityChange(lagrangianMultiplier, contact);
         lastChange = lagrangianMultiplier;
         totalChange = contact.getTotalImpulseNormal();
-        std::cout << "Total change is: " << totalChange
-                  << "last change is: " << lastChange << "iteration: " << i
-                  << std::endl;
+        // std::cout << "Total change is: " << totalChange
+        //           << "last change is: " << lastChange << "iteration: " << i
+        //           << "\n";
         // sf::sleep(sf::seconds(0.1F));
       }
     }
     i++;
-  } while (std::abs(lastChange) / totalChange > 0.003F && i < 1000);
+    // std::cout << "total it" << i << "\n";
+  } while (std::abs(lastChange) / totalChange > 0.001F && i < 1000);
   for (auto &body : bodies) {
     body->integrateVelocities(deltaTime);
   }
@@ -74,10 +75,10 @@ void World::findContacts() {
       if (manifold.size() > 0) {
         auto manIt = manifolds.find(manifoldKey);
         if (manIt == manifolds.end()) {
-          std::cout << "new manifold" << std::endl;
+          // std::cout << "new manifold" << std::endl;
           manifolds.insert(std::make_pair(manifoldKey, manifold));
         } else {
-          std::cout << "existing manifold" << std::endl;
+          // std::cout << "existing manifold" << std::endl;
           manIt->second.update(manifold.getContacts());
         }
       } else {

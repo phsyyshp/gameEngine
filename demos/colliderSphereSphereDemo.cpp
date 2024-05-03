@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
           std::unique_ptr<Box> box =
               std::make_unique<Box>(mousePos.x, mousePos.y, 200, 25);
-          float density = 0.5f;
+          float density = 0.1f;
           float mass = density * 200 * 25;
           box->setInverseMass(1 / mass);
           world.registerBody(std::move(box));
