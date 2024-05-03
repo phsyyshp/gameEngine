@@ -107,23 +107,23 @@ void World::setSleepers() {
     }
   }
 }
-void World::solveIslands() {
-  for (auto &body : bodies) {
-    body->clearMark();
-  }
-  for (auto &[key, manifold] : manifolds) {
-    manifold->clearMark();
-  }
-  Island island;
-  for (auto &body : bodies) {
-    if (body->isMarked() && body->isDynamic() && body->isAwake()) {
-      island.clear();
-      body->mark();
-      std::vector<std::unique_ptr<RigidBody2D>> stack;
-      stack.push_back(std::move(body));
-    }
-  }
-}
+// void World::solveIslands() {
+//   for (auto &body : bodies) {
+//     body->clearMark();
+//   }
+//   for (auto &[key, manifold] : manifolds) {
+//     manifold->clearMark();
+//   }
+//   Island island;
+//   for (auto &body : bodies) {
+//     if (body->isMarked() && body->isDynamic() && body->isAwake()) {
+//       island.clear();
+//       body->mark();
+//       std::vector<std::unique_ptr<RigidBody2D>> stack;
+//       stack.push_back(std::move(body));
+//     }
+//   }
+// }
 void World::showContacts(std::map<ManifoldKey, Manifold> &manifolds) {
   for (auto &[key, manifold] : manifolds) {
 
