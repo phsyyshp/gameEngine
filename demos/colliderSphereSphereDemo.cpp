@@ -1,6 +1,7 @@
 #include "forceGeneration.hpp"
 #include "rigidBody2D.hpp"
 #include "shapes.hpp"
+#include "visuals.hpp"
 #include "world.hpp"
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
@@ -9,8 +10,7 @@
 
 int main(int argc, char *argv[]) {
   sf::ContextSettings settings;
-  sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
-                          sf::Style::Default);
+  auto &window = Visual::window;
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
           std::unique_ptr<Box> box =
               std::make_unique<Box>(mousePos.x, mousePos.y, 200, 25);
-          float density = 0.5f;
+          float density = 0.1f;
           float mass = density * 200 * 25;
           box->setInverseMass(1 / mass);
           world.registerBody(std::move(box));

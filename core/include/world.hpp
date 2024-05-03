@@ -2,6 +2,9 @@
 #include "forceGeneration.hpp"
 #include "rigidBody2D.hpp"
 #include <SFML/Graphics/RenderWindow.hpp>
+#include <SFML/System/Sleep.hpp>
+#include <SFML/System/Time.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <memory>
 class World {
 public:

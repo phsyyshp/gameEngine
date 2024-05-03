@@ -6,12 +6,16 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Graphics/CircleShape.hpp>
 #include <SFML/Graphics/Color.hpp>
+#include <SFML/System/Vector2.hpp>
 #include <memory>
 
 int main(int argc, char *argv[]) {
-  sf::ContextSettings settings;
-  sf::RenderWindow window(sf::VideoMode(800, 600), "My window",
-                          sf::Style::Default);
+  // sf::View view;
+  // view.zoom(2.F);
+  auto &window = Visual::window;
+  sf::View view(sf::Vector2f(window.getSize().x / 2, window.getSize().y / 2),
+                sf::Vector2f(window.getSize().x, window.getSize().y));
+
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
@@ -27,7 +31,7 @@ int main(int argc, char *argv[]) {
   std::unique_ptr<Box> mbox = std::make_unique<Box>(400, 605, 800, 100);
   std::unique_ptr<Box> mboxLeft = std::make_unique<Box>(0, 250, 100, 600);
   std::unique_ptr<Box> mboxRight = std::make_unique<Box>(600, 250, 100, 600);
-  std::unique_ptr<Box> box1 = std::make_unique<Box>(200, 100, 100, 50);
+  std::unique_ptr<Box> box1 = std::make_unique<Box>(200, 100, 200, 25);
   std::unique_ptr<Circle> circle = std::make_unique<Circle>(400, 300, 30);
   mbox->setInverseInertia(0.F);
   mboxLeft->setInverseInertia(0.F);
@@ -38,8 +42,8 @@ int main(int argc, char *argv[]) {
   world.registerBody(std::move(mbox));
   world.registerBody(std::move(mboxLeft));
   world.registerBody(std::move(mboxRight));
-  world.registerBody(std::move(box1));
   world.registerBody(std::move(circle));
+  world.registerBody(std::move(box1));
 
   // world.registerGravity(gravity);
 
@@ -69,10 +73,23 @@ int main(int argc, char *argv[]) {
         if (event.key.code == sf::Keyboard::Down) {
           userAdedVelocity = {0.f, 1000.f};
         }
+        if (event.key.code == sf::Keyboard::A) {
+          view.move(-10.f, 0.f);
+        }
+        if (event.key.code == sf::Keyboard::D) {
+          view.move(10.f, 0.f);
+        }
         if (event.key.code == sf::Keyboard::W) {
-          userAddedOrientation = M_PI / 10;
+          view.move(0.f, -10.f);
         }
         if (event.key.code == sf::Keyboard::S) {
+          view.move(0.f, 10.f);
+        }
+
+        if (event.key.code == sf::Keyboard::Q) {
+          userAddedOrientation = M_PI / 10;
+        }
+        if (event.key.code == sf::Keyboard::E) {
           userAddedOrientation = -M_PI / 10;
         }
       }
@@ -109,6 +126,7 @@ int main(int argc, char *argv[]) {
       }
     }
 
+    window.setView(view);
     window.display();
     window.clear(sf::Color::Black);
   }
