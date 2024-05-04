@@ -16,13 +16,15 @@ public:
   void runPhysics(float deltaTime, int subStep = 1);
   void registerBody(std::unique_ptr<RigidBody2D> body);
   void registerGravity(Gravity &forceGenerator);
-
   std::vector<std::unique_ptr<RigidBody2D>> &getBodies();
   size_t getBodySize() const;
   const std::map<ManifoldKey, Manifold> &getManifolds() const;
 
+  std::vector<std::reference_wrapper<Manifold>>
+  getAllManifolds(const RigidBody2D &);
+
   void findContacts();
-  void solveIslands();
+  void solveIslands(float deltaTime);
   void setSleepers();
 
   void setWindow(sf::RenderWindow &window);

@@ -76,18 +76,19 @@ void RigidBody2D::setOrientation(float orientation_) {
   orientation = orientation_;
 }
 bool RigidBody2D::isAwake() const { return isAwake_; }
-int RigidBody2D::getAwakeTimer() const { return isAwakeTimer; }
-void RigidBody2D::setAwakeTimer(int awakeTimer) {
-  this->isAwakeTimer = awakeTimer;
-}
 void RigidBody2D::wakeUp() {
-  isAwakeTimer = 0;
+  sleepTime = 0;
   isAwake_ = true;
 }
-void RigidBody2D::sleep() {
-  isAwake_ = false;
-  isAwakeTimer = 0;
-}
+void RigidBody2D::sleep() { isAwake_ = false; }
 sf::Vector2f RigidBody2D::localToGlobal(const sf::Vector2f &localPoint) const {
   return inverseTransformToCordinateSystem(localPoint, position, orientation);
+}
+bool RigidBody2D::isMarked() const { return isMarked_; }
+void RigidBody2D::mark() { isMarked_ = true; }
+void RigidBody2D::clearMark() { isMarked_ = false; }
+
+bool RigidBody2D::isDynamic() const { return inverseMass > 0.F; }
+bool RigidBody2D::operator==(const RigidBody2D &other) const {
+  return this == &other;
 }

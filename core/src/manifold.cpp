@@ -2,6 +2,13 @@
 // Constructor now takes pointers instead of references.
 RigidBody2D &Manifold::getBodyA() const { return bodyA; }
 RigidBody2D &Manifold::getBodyB() const { return bodyB; }
+RigidBody2D &Manifold::getOtherBody(const RigidBody2D &body) const {
+  if (body == bodyA) {
+    return bodyB;
+  }
+  return bodyA;
+}
+
 std::vector<Contact> &Manifold::getContacts() { return contacts; }
 size_t Manifold::size() const { return contacts.size(); }
 void Manifold::push_back(const Contact &contact) {
@@ -107,3 +114,7 @@ float Manifold::solveContactConstraints(Contact &contact, float deltaTime) {
       deminator;
   return lagrangianMultiplier;
 }
+
+bool Manifold::isMarked() const { return isMarked_; }
+void Manifold::mark() { isMarked_ = true; }
+void Manifold::clearMark() { isMarked_ = false; }

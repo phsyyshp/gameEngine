@@ -8,9 +8,12 @@ class RigidBody2D {
 
 public:
   RigidBody2D(float x, float y) : position(x, y) {}
+  RigidBody2D(RigidBody2D &) = delete;
   virtual ~RigidBody2D(){};
   virtual RigidBody2DType type() { return RigidBody2DType::rb; }
   void addForce(const sf::Vector2f &);
+  // operators
+  bool operator==(const RigidBody2D &other) const;
   // getters
   float getInverseMass() const;
   float getInverseInertia() const;
@@ -37,8 +40,13 @@ public:
   void setAwakeTimer(int);
   void wakeUp();
   void sleep();
+  bool isMarked() const;
+  void mark();
+  void clearMark();
+  bool isDynamic() const;
 
   sf::Vector2f localToGlobal(const sf::Vector2f &localPoint) const;
+  float sleepTime = 0.F;
 
 private:
   float inverseMass = 0.F;
@@ -50,10 +58,8 @@ private:
   sf::Vector2f lastFrameAcceleration = {0.f, 0.f};
   ;
   float inverseInertia = 0.F;
-
   bool isAwake_ = true;
-
-  int isAwakeTimer = 0;
+  bool isMarked_ = false;
 
 protected:
   float orientation = 0.F;

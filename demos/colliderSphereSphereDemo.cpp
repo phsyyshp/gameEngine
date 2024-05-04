@@ -77,7 +77,11 @@ int main(int argc, char *argv[]) {
         bodyc->update();
         bodyc->setOutlineThickness(1.f);
         bodyc->setOutlineColor(sf::Color::Red);
+
         if (isDebug) {
+          if (bodyc->isAwake()) {
+            bodyc->setOutlineColor(sf::Color::Green);
+          }
           bodyc->setFillColor(sf::Color::Transparent);
         }
         window.draw(*bodyc);
@@ -89,6 +93,10 @@ int main(int argc, char *argv[]) {
         bodyb->setOutlineThickness(1.f);
         bodyb->setOutlineColor(sf::Color::Red);
         if (isDebug) {
+          if (bodyb->isAwake()) {
+            bodyb->setOutlineColor(sf::Color::Green);
+          }
+
           bodyb->setFillColor(sf::Color::Transparent);
         }
         window.draw(*bodyb);
