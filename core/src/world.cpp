@@ -26,6 +26,9 @@ void World::runPhysics(float deltaTime, int subStep) {
     }
   }
   for (auto &[key, manifold] : manifolds) {
+    if (!manifold.getBodyA().isAwake() && !manifold.getBodyB().isAwake()) {
+      continue;
+    }
     for (auto &contact : manifold.getContacts()) {
       manifold.preStep(contact, deltaTime);
     }
@@ -35,6 +38,9 @@ void World::runPhysics(float deltaTime, int subStep) {
   int i = 0;
   do {
     for (auto &[key, manifold] : manifolds) {
+      if (!manifold.getBodyA().isAwake() && !manifold.getBodyB().isAwake()) {
+        continue;
+      }
       for (auto &contact : manifold.getContacts()) {
         float lagrangianMultiplier =
             manifold.solveContactConstraints(contact, deltaTime);
@@ -56,6 +62,9 @@ void World::runPhysics(float deltaTime, int subStep) {
   //           << " last change is: " << lastChange << " iteration: " << i <<
   //           "\n";
   for (auto &body : bodies) {
+    if (!body->isAwake()) {
+      continue;
+    }
     body->integrateVelocities(deltaTime);
   }
 
@@ -118,20 +127,21 @@ void World::solveIslands(float deltaTime) {
     manifold.clearMark();
   }
   Island island;
-  for (auto &body : bodies) {
+  for (std::unique_ptr<RigidBody2D> &body : bodies) {
     if ((!body->isMarked()) && body->isDynamic() && body->isAwake()) {
       island.clear();
       body->mark();
       std::vector<std::reference_wrapper<RigidBody2D>> stack;
       stack.push_back(std::ref(*body));
       while (!stack.empty()) {
-        island.add(stack.back());
+        RigidBody2D &tempBody = stack.back().get();
+        island.add(tempBody);
         stack.pop_back();
-        for (auto &manifoldOfBody : getAllManifolds(*body)) {
+        for (auto &manifoldOfBody : getAllManifolds(tempBody)) {
           if (!manifoldOfBody.get().isMarked()) {
             island.add(manifoldOfBody);
             manifoldOfBody.get().mark();
-            auto &other = manifoldOfBody.get().getOtherBody(*body);
+            RigidBody2D &other = manifoldOfBody.get().getOtherBody(tempBody);
             if (!other.isMarked()) {
               other.wakeUp();
               stack.push_back(std::ref(other));
