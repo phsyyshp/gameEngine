@@ -1,12 +1,12 @@
 #include "manifold.hpp"
 // Constructor now takes pointers instead of references.
-RigidBody2D &Manifold::getBodyA() const { return bodyA; }
-RigidBody2D &Manifold::getBodyB() const { return bodyB; }
-RigidBody2D &Manifold::getOtherBody(const RigidBody2D &body) const {
+RigidBody2D &Manifold::getBodyA() const { return *bodyA; }
+RigidBody2D &Manifold::getBodyB() const { return *bodyB; }
+RigidBody2D &Manifold::getOtherBody(RigidBody2D *body) const {
   if (body == bodyA) {
-    return bodyB;
+    return *bodyB;
   }
-  return bodyA;
+  return *bodyA;
 }
 
 std::vector<Contact> &Manifold::getContacts() { return contacts; }
@@ -37,8 +37,8 @@ void Manifold::preStep(Contact &contact, float deltaTime) {
 
   std::array<sf::Vector2f, 2> relativeContactPosition;
   sf::Vector2f contactNormal = contact.normal;
-  relativeContactPosition[0] = contact.position - bodyA.getPosition();
-  relativeContactPosition[1] = contact.position - bodyB.getPosition();
+  relativeContactPosition[0] = contact.position - bodyA->getPosition();
+  relativeContactPosition[1] = contact.position - bodyB->getPosition();
   float bias = 0;
   float beta = 0.2F;
   float slop = 0.01F;
@@ -49,14 +49,16 @@ void Manifold::preStep(Contact &contact, float deltaTime) {
 
   if (Collider::accumulateImpulse) {
 
-    bodyA.addVelocity(contactNormal * bodyA.getInverseMass() *
-                      lagrangianMultiplier);
-    bodyA.addAngularVelocity(cross(relativeContactPosition[0], contactNormal) *
-                             bodyA.getInverseInertia() * lagrangianMultiplier);
-    bodyB.addVelocity(-contactNormal * bodyB.getInverseMass() *
-                      lagrangianMultiplier);
-    bodyB.addAngularVelocity(cross(-relativeContactPosition[1], contactNormal) *
-                             bodyB.getInverseInertia() * lagrangianMultiplier);
+    bodyA->addVelocity(contactNormal * bodyA->getInverseMass() *
+                       lagrangianMultiplier);
+    bodyA->addAngularVelocity(cross(relativeContactPosition[0], contactNormal) *
+                              bodyA->getInverseInertia() *
+                              lagrangianMultiplier);
+    bodyB->addVelocity(-contactNormal * bodyB->getInverseMass() *
+                       lagrangianMultiplier);
+    bodyB->addAngularVelocity(
+        cross(-relativeContactPosition[1], contactNormal) *
+        bodyB->getInverseInertia() * lagrangianMultiplier);
   }
 }
 void Manifold::applyVelocityChange(float lagrangianMultiplier,
@@ -72,37 +74,37 @@ void Manifold::applyVelocityChange(float lagrangianMultiplier,
   }
 
   std::array<sf::Vector2f, 2> relativeContactPosition;
-  relativeContactPosition[0] = contact.position - bodyA.getPosition();
-  relativeContactPosition[1] = contact.position - bodyB.getPosition();
-  bodyA.addVelocity(contact.normal * bodyA.getInverseMass() *
-                    lagrangianMultiplier);
-  bodyB.addVelocity(-contact.normal * bodyB.getInverseMass() *
-                    lagrangianMultiplier);
-  bodyA.addAngularVelocity(cross(relativeContactPosition[0], contact.normal) *
-                           bodyA.getInverseInertia() * lagrangianMultiplier);
-  bodyB.addAngularVelocity(cross(-relativeContactPosition[1], contact.normal) *
-                           bodyB.getInverseInertia() * lagrangianMultiplier);
+  relativeContactPosition[0] = contact.position - bodyA->getPosition();
+  relativeContactPosition[1] = contact.position - bodyB->getPosition();
+  bodyA->addVelocity(contact.normal * bodyA->getInverseMass() *
+                     lagrangianMultiplier);
+  bodyB->addVelocity(-contact.normal * bodyB->getInverseMass() *
+                     lagrangianMultiplier);
+  bodyA->addAngularVelocity(cross(relativeContactPosition[0], contact.normal) *
+                            bodyA->getInverseInertia() * lagrangianMultiplier);
+  bodyB->addAngularVelocity(cross(-relativeContactPosition[1], contact.normal) *
+                            bodyB->getInverseInertia() * lagrangianMultiplier);
 }
 float Manifold::solveContactConstraints(Contact &contact, float deltaTime) {
   std::array<sf::Vector2f, 2> relativeContactPosition;
 
   std::array<float, 2> angularComponent;
-  relativeContactPosition[0] = contact.position - bodyA.getPosition();
-  relativeContactPosition[1] = contact.position - bodyB.getPosition();
-  float totalInverseMass = bodyA.getInverseMass() + bodyB.getInverseMass();
-  std::array<sf::Vector2f, 2> velocity = {bodyA.getVelocity(),
-                                          bodyB.getVelocity()};
-  std::array<float, 2> angularSpeed = {bodyA.getAngularVelocity(),
-                                       bodyB.getAngularVelocity()};
+  relativeContactPosition[0] = contact.position - bodyA->getPosition();
+  relativeContactPosition[1] = contact.position - bodyB->getPosition();
+  float totalInverseMass = bodyA->getInverseMass() + bodyB->getInverseMass();
+  std::array<sf::Vector2f, 2> velocity = {bodyA->getVelocity(),
+                                          bodyB->getVelocity()};
+  std::array<float, 2> angularSpeed = {bodyA->getAngularVelocity(),
+                                       bodyB->getAngularVelocity()};
   std::array<sf::Vector2f, 2> angularVelocity = {
       perpendicular(relativeContactPosition[0]) * angularSpeed[0],
       perpendicular(relativeContactPosition[1]) * angularSpeed[1]};
   angularComponent[0] = cross(relativeContactPosition[0], contact.normal) *
                         cross(relativeContactPosition[0], contact.normal) *
-                        bodyA.getInverseInertia();
+                        bodyA->getInverseInertia();
   angularComponent[1] = cross(relativeContactPosition[1], contact.normal) *
                         cross(relativeContactPosition[1], contact.normal) *
-                        bodyB.getInverseInertia();
+                        bodyB->getInverseInertia();
   float deminator =
       angularComponent[0] + angularComponent[1] + totalInverseMass;
   // bias+=resitution*()

@@ -88,8 +88,8 @@ void World::findContacts() {
           bodies[j]->getInverseMass() == 0) {
         continue;
       }
-      Manifold manifold(*bodies[i], *bodies[j]);
-      ManifoldKey manifoldKey(*bodies[i], *bodies[j]);
+      Manifold manifold(bodies[i].get(), bodies[j].get());
+      ManifoldKey manifoldKey(bodies[i].get(), bodies[j].get());
       // std::cout << "manifold size is: " << manifold.size() << std::endl;
       if (manifold.size() > 0) {
         auto manIt = manifolds.find(manifoldKey);
@@ -106,19 +106,6 @@ void World::findContacts() {
     }
   }
 }
-// void World::setSleepers() {
-//   for (auto &body : bodies) {
-//     if (body->isAwake()) {
-//       if (magnitude(body->getVelocity()) < 15.5f) {
-//         if (body->getAwakeTimer() < 10) {
-//           body->setAwakeTimer(body->getAwakeTimer() + 1);
-//         } else {
-//           body->sleep();
-//         }
-//       }
-//     }
-//   }
-// }
 void World::solveIslands(float deltaTime) {
   for (auto &body : bodies) {
     body->clearMark();
@@ -127,24 +114,27 @@ void World::solveIslands(float deltaTime) {
     manifold.clearMark();
   }
   Island island;
-  for (std::unique_ptr<RigidBody2D> &body : bodies) {
+  for (auto &body : bodies) {
     if ((!body->isMarked()) && body->isDynamic() && body->isAwake()) {
       island.clear();
       body->mark();
-      std::vector<std::reference_wrapper<RigidBody2D>> stack;
-      stack.push_back(std::ref(*body));
+      std::vector<RigidBody2D *> stack;
+      stack.push_back(body.get());
       while (!stack.empty()) {
-        RigidBody2D &tempBody = stack.back().get();
+        RigidBody2D *tempBody = stack.back();
         island.add(tempBody);
         stack.pop_back();
-        for (auto &manifoldOfBody : getAllManifolds(tempBody)) {
-          if (!manifoldOfBody.get().isMarked()) {
+        if (!tempBody->isDynamic()) {
+          continue;
+        }
+        for (auto &manifoldOfBody : getAllManifolds(*tempBody)) {
+          if (!manifoldOfBody->isMarked()) {
             island.add(manifoldOfBody);
-            manifoldOfBody.get().mark();
-            RigidBody2D &other = manifoldOfBody.get().getOtherBody(tempBody);
-            if (!other.isMarked()) {
-              other.wakeUp();
-              stack.push_back(std::ref(other));
+            manifoldOfBody->mark();
+            RigidBody2D *other = &(manifoldOfBody->getOtherBody(tempBody));
+            if (!other->isMarked()) {
+              other->wakeUp();
+              stack.push_back(other);
             }
           }
         }
@@ -153,12 +143,11 @@ void World::solveIslands(float deltaTime) {
     }
   }
 }
-std::vector<std::reference_wrapper<Manifold>>
-World::getAllManifolds(const RigidBody2D &body) {
-  std::vector<std::reference_wrapper<Manifold>> manifoldsOfBody;
+std::vector<Manifold *> World::getAllManifolds(const RigidBody2D &body) {
+  std::vector<Manifold *> manifoldsOfBody;
   for (auto &[key, manifold] : manifolds) {
     if (manifold.getBodyA() == body || manifold.getBodyB() == body) {
-      manifoldsOfBody.push_back(std::ref(manifold));
+      manifoldsOfBody.push_back(&manifold);
     }
   }
   return manifoldsOfBody;

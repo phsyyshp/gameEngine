@@ -20,8 +20,7 @@ public:
   size_t getBodySize() const;
   const std::map<ManifoldKey, Manifold> &getManifolds() const;
 
-  std::vector<std::reference_wrapper<Manifold>>
-  getAllManifolds(const RigidBody2D &);
+  std::vector<Manifold *> getAllManifolds(const RigidBody2D &body);
 
   void findContacts();
   void solveIslands(float deltaTime);
