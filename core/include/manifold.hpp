@@ -14,11 +14,9 @@ inline bool operator<(const ManifoldKey &a1, const ManifoldKey &a2) {
   if ((a1.bodyA) < (a2.bodyA)) {
     return true;
   }
-
   if (a1.bodyA == a2.bodyA && a1.bodyB < a2.bodyB) {
     return true;
   }
-
   return false;
 }
 class Manifold {
@@ -39,7 +37,7 @@ public:
   void update(std::vector<Contact> &newContacts);
   void preStep(Contact &contact, float deltaTime);
   void applyVelocityChange(float lagrangianMultiplier, Contact &contact);
-  float solveContactConstraints(Contact &contact, float deltaTime);
+  float solveImpulse(Contact &contact, float deltaTime);
 
   bool isMarked() const;
   void mark();
@@ -66,7 +64,7 @@ public:
     // std::cout << "size of island: " << bodies.size() << "\n";
     // std::cout << "size of manifolds" << manifolds.size() << "\n";
 
-    float velocityThreshold = 55.5f;
+    float velocityThreshold = 35.5f;
     float timeToSleep = deltaTime * 10;
     float minSleepTime = std::numeric_limits<float>::max();
     for (auto &body : bodies) {

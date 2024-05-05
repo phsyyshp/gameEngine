@@ -14,12 +14,17 @@ public:
       : sf::CircleShape(r), RigidBody2D(x, y), radius(r) {
     setPosition(x, y);
     setOrigin(r, r);
+    setRotation(orientation / 3.14159f * 180);
+    setInverseInertia(20.F / std::pow(r, 4) / M_PIf);
   }
   virtual ~Circle(){};
   // getters
   float getRadius() const { return radius; }
 
-  void update() { setPosition(position.x, position.y); }
+  void update() {
+    setPosition(position.x, position.y);
+    setRotation(orientation / M_PIf * 180.f);
+  }
   sf::Vector2f getSupport(const sf::Vector2f &direction) {
     return position + normalise(direction) * radius;
   }

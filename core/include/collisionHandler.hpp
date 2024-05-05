@@ -32,4 +32,5 @@ public:
                       std::vector<Contact> &contacts);
   static const bool warmStart;
   static const bool accumulateImpulse;
+  static const bool applySleepScheme;
 };

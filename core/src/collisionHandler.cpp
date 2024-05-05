@@ -1,8 +1,9 @@
 #include "collisionHandler.hpp"
 #include "visuals.hpp"
 
-const bool Collider::warmStart = false;
+const bool Collider::warmStart = true;
 const bool Collider::accumulateImpulse = true;
+const bool Collider::applySleepScheme = false;
 
 bool Collider::sphereAndSphere(Circle &a, Circle &b,
                                std::vector<Contact> &contacts) {
@@ -133,6 +134,7 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB,
   // Step 1b..z
   direction = -pointOnMinkowskiDiffAmB;
   while (true) {
+    // std::cout << simplex.size() << std::endl;
     pointOnMinkowskiDiffAmB =
         shapeA.getSupport(direction) - shapeB.getSupport(-direction);
     if (dot(pointOnMinkowskiDiffAmB, direction) < 0) {
@@ -142,6 +144,7 @@ bool Collider::GJKintersectionPP(Box &shapeA, Box &shapeB,
     bool containsOrigin = nearestSimplex(simplex, direction, shapeA, shapeB);
     if (containsOrigin) {
       containsOrigin = true;
+      return true;
       break;
     }
   }
@@ -262,6 +265,7 @@ bool Collider::rectangleAndRectangle(Box &shapeA, Box &shapeB,
     }
     contacts.push_back(contact);
   }
+  return true;
 }
 
 bool Collider::nearestSimplex(std::vector<sf::Vector2f> &simplex,

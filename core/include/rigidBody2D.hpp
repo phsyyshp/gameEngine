@@ -33,7 +33,7 @@ public:
   void addAngularVelocity(float rotation);
   sf::Vector2f getPosition() const;
   sf::Vector2f getVelocity() const;
-  float getAngularVelocity() const;
+  float getAngularSpeed() const;
   float getOrientation() const;
   bool isAwake() const;
   int getAwakeTimer() const;

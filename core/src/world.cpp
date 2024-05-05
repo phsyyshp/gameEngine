@@ -13,7 +13,9 @@ void World::runPhysics(float deltaTime, int subStep) {
 
   // setSleepers();
   findContacts();
-  solveIslands(deltaTime);
+  if (Collider::applySleepScheme) {
+    solveIslands(deltaTime);
+  }
 
   // FIX IT: implement a sleep system
   for (auto &body : bodies) {
@@ -43,11 +45,9 @@ void World::runPhysics(float deltaTime, int subStep) {
         continue;
       }
       for (auto &contact : manifold.getContacts()) {
-        float lagrangianMultiplier =
-            manifold.solveContactConstraints(contact, deltaTime);
-        manifold.applyVelocityChange(lagrangianMultiplier, contact);
+        float lagrangianMultiplier = manifold.solveImpulse(contact, deltaTime);
         lastChange = lagrangianMultiplier;
-        totalChange = contact.totalImpulse;
+        totalChange = contact.totalNormalImpulse;
         // sf::sleep(sf::seconds(0.1F));
       }
     }
@@ -72,7 +72,6 @@ void World::runPhysics(float deltaTime, int subStep) {
   if (isDebug) {
     showContacts(manifolds);
   }
-  // collisionData.clear();
 }
 void World::registerBody(std::unique_ptr<RigidBody2D> body) {
   bodies.push_back(std::move(body));
