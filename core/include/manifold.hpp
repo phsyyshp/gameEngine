@@ -63,12 +63,16 @@ public:
   }
   void add(Manifold *manifold) { manifolds.push_back(manifold); }
   void sleep(float deltaTime) {
-    std::cout << "size of island: " << bodies.size() << "\n";
-    std::cout << "size of manifolds" << manifolds.size() << "\n";
+    // std::cout << "size of island: " << bodies.size() << "\n";
+    // std::cout << "size of manifolds" << manifolds.size() << "\n";
+
     float velocityThreshold = 55.5f;
     float timeToSleep = deltaTime * 10;
     float minSleepTime = std::numeric_limits<float>::max();
     for (auto &body : bodies) {
+      // std::cout << "position of a body" << body->getPosition().x << ","
+      //           << body->getPosition().y << "adress of body" << body
+      //           << "sleep time" << body->sleepTime << "\n";
       if (!body->isDynamic()) {
         body->sleep();
         continue;
@@ -78,11 +82,11 @@ public:
         minSleepTime = 0.F;
       } else {
         // std::cout << "checking sleep\n";
-
         body->sleepTime += deltaTime;
         minSleepTime = std::min(minSleepTime, body->sleepTime);
       }
     }
+    // std::cout << "min sleep time " << minSleepTime << "\n";
     if (minSleepTime > timeToSleep) {
       for (auto &body : bodies) {
         body->sleep();

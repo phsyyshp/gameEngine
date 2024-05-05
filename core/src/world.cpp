@@ -37,6 +37,7 @@ void World::runPhysics(float deltaTime, int subStep) {
   float lastChange = 0;
   int i = 0;
   do {
+    // FIX IT: The break condition is not proper enough make it more roboust
     for (auto &[key, manifold] : manifolds) {
       if (!manifold.getBodyA().isAwake() && !manifold.getBodyB().isAwake()) {
         continue;
@@ -134,6 +135,7 @@ void World::solveIslands(float deltaTime) {
             RigidBody2D *other = &(manifoldOfBody->getOtherBody(tempBody));
             if (!other->isMarked()) {
               other->wakeUp();
+              other->mark();
               stack.push_back(other);
             }
           }

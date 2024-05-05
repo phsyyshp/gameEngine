@@ -77,7 +77,7 @@ void RigidBody2D::setOrientation(float orientation_) {
 }
 bool RigidBody2D::isAwake() const { return isAwake_; }
 void RigidBody2D::wakeUp() {
-  sleepTime = 0;
+  // sleepTime = 0;
   isAwake_ = true;
 }
 void RigidBody2D::sleep() { isAwake_ = false; }
