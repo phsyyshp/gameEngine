@@ -1,6 +1,6 @@
 #include "collisionHandler.hpp"
 
-const bool Collider::warmStart = true;
+const bool Collider::warmStart = false;
 const bool Collider::accumulateImpulse = true;
 const bool Collider::applySleepScheme = false;
 
