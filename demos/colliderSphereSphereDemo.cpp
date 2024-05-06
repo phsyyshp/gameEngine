@@ -11,7 +11,8 @@
 
 int main(int argc, char *argv[]) {
   sf::ContextSettings settings;
-  auto &window = Visual::window;
+  Visual vs;
+  auto &window = vs.window;
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
@@ -35,8 +36,6 @@ int main(int argc, char *argv[]) {
   world.registerBody(std::move(mboxLeft));
   world.registerBody(std::move(mboxRight));
   world.registerGravity(gravity);
-
-  world.setWindow(window);
 
   while (window.isOpen()) {
     sf::Event event;
@@ -72,45 +71,14 @@ int main(int argc, char *argv[]) {
     // run physics
     int subStep = 1;
     world.runPhysics(deltaTime, subStep);
-    for (auto &body : world.getBodies()) {
-      if (body->type() == RigidBody2DType::CIRCLE) {
+    std::vector<RigidBody2D *> rawPtrVec;
 
-        Circle *bodyc = static_cast<Circle *>(body.get());
-        bodyc->update();
-        bodyc->setOutlineThickness(1.f);
-        bodyc->setOutlineColor(sf::Color::Red);
-        // draw a line from center of the circle to its edge;
-        sf::Vertex line[] = {
-            sf::Vertex(bodyc->RigidBody2D::getPosition()),
-            sf::Vertex(bodyc->RigidBody2D::getPosition() +
-                       bodyc->getRadius() * rotate(sf::Vector2f{1.F, 0.F},
-                                                   bodyc->getOrientation()))};
-        window.draw(line, 2, sf::Lines);
-        if (isDebug) {
-          if (bodyc->isAwake()) {
-            bodyc->setOutlineColor(sf::Color::Green);
-          }
-          bodyc->setFillColor(sf::Color::Transparent);
-        }
-        window.draw(*bodyc);
-      }
-      if (body->type() == RigidBody2DType::BOX) {
-
-        Box *bodyb = static_cast<Box *>(body.get());
-        bodyb->update();
-        bodyb->setOutlineThickness(1.f);
-        bodyb->setOutlineColor(sf::Color::Red);
-        if (isDebug) {
-          if (bodyb->isAwake()) {
-            bodyb->setOutlineColor(sf::Color::Green);
-          }
-
-          bodyb->setFillColor(sf::Color::Transparent);
-        }
-        window.draw(*bodyb);
-      }
-    }
-
+    // Transform unique_ptr vector to raw pointer vector
+    std::transform(
+        world.getBodies().begin(), world.getBodies().end(),
+        std::back_inserter(rawPtrVec),
+        [](const std::unique_ptr<RigidBody2D> &ptr) { return ptr.get(); });
+    vs.render(rawPtrVec);
     window.display();
     window.clear(sf::Color::Black);
   }

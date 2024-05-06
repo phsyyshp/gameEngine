@@ -15,7 +15,7 @@ endif()
 
 # Set optimization flags if sanitizers are not enabled
 if(NOT ENABLE_SANITIZERS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+    # set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 endif()
 
 if(ENABLE_PROFILING)
@@ -32,11 +32,10 @@ find_package(SFML 2.5 COMPONENTS graphics window system REQUIRED)
 set(COLLIDER_SPHERE_DEMO_SOURCES
     demos/colliderSphereSphereDemo.cpp
     core/src/collisionHandler.cpp
-    core/src/utils.cpp
     core/src/manifold.cpp
-    core/src/contact.cpp
     core/src/rigidBody2D.cpp
     core/src/forceGeneration.cpp
+    core/src/linearalg.cpp
     core/src/visuals.cpp
     core/src/world.cpp)
 
@@ -47,10 +46,9 @@ target_include_directories(ColliderSphereDemo PRIVATE core/include)
 set(benchMark_SOURCES
     demos/benchMark.cpp
     core/src/collisionHandler.cpp
-    core/src/utils.cpp
-    core/src/contact.cpp
     core/src/rigidBody2D.cpp
     core/src/forceGeneration.cpp
+    core/src/linearalg.cpp
     core/src/visuals.cpp
     core/src/manifold.cpp
     core/src/world.cpp)
@@ -64,8 +62,6 @@ target_include_directories(benchMark PRIVATE core/include)
 set(gjkTest_SOURCES
     demos/gjkTests.cpp
     core/src/collisionHandler.cpp
-    core/src/utils.cpp
-    core/src/contact.cpp
     core/src/rigidBody2D.cpp
     core/src/forceGeneration.cpp
     core/src/visuals.cpp

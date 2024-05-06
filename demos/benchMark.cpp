@@ -12,16 +12,16 @@
 
 int main(int argc, char *argv[]) {
   sf::ContextSettings settings;
-  auto &window = Visual::window;
+  Visual vs;
+  auto &window = vs.window;
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
   int frameCounter = 0;
-  bool isDebug = false;
   if (argc > 1 && std::string(argv[1]) == "-d") {
-    isDebug = true;
+    vs.isDebug = true;
   }
-  World world(200, isDebug);
+  World world(200,false);
 
   float timeScale = 1;
   float lengthScale = 10001.f;
@@ -37,8 +37,6 @@ int main(int argc, char *argv[]) {
   world.registerBody(std::move(mboxLeft));
   world.registerBody(std::move(mboxRight));
   world.registerGravity(gravity);
-
-  world.setWindow(window);
 
   //   for (int i = 0; i < 5; i++) {
   //     sf::Vector2i mousePos = {100, 200};
@@ -61,58 +59,23 @@ int main(int argc, char *argv[]) {
     world.registerBody(std::move(box));
   }
   while (window.isOpen()) {
-    // Take inputs;
-
     sf::Event event;
-
     // Take inputs;
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) {
         window.close();
       }
     }
-    // run physics
-    int subStep = 1;
-    world.runPhysics(deltaTime, subStep);
-    for (auto &body : world.getBodies()) {
-      if (body->type() == RigidBody2DType::CIRCLE) {
+    world.runPhysics(deltaTime);
 
-        Circle *bodyc = static_cast<Circle *>(body.get());
-        bodyc->update();
-        bodyc->setOutlineThickness(1.f);
-        bodyc->setOutlineColor(sf::Color::Red);
-        // draw a line from center of the circle to its edge;
-        sf::Vertex line[] = {
-            sf::Vertex(bodyc->RigidBody2D::getPosition()),
-            sf::Vertex(bodyc->RigidBody2D::getPosition() +
-                       bodyc->getRadius() * rotate(sf::Vector2f{1.F, 0.F},
-                                                   bodyc->getOrientation()))};
-        window.draw(line, 2, sf::Lines);
-        if (isDebug) {
-          if (bodyc->isAwake()) {
-            bodyc->setOutlineColor(sf::Color::Green);
-          }
-          bodyc->setFillColor(sf::Color::Transparent);
-        }
-        window.draw(*bodyc);
-      }
-      if (body->type() == RigidBody2DType::BOX) {
+    std::vector<RigidBody2D *> rawPtrVec;
 
-        Box *bodyb = static_cast<Box *>(body.get());
-        bodyb->update();
-        bodyb->setOutlineThickness(1.f);
-        bodyb->setOutlineColor(sf::Color::Red);
-        if (isDebug) {
-          if (bodyb->isAwake()) {
-            bodyb->setOutlineColor(sf::Color::Green);
-          }
-
-          bodyb->setFillColor(sf::Color::Transparent);
-        }
-        window.draw(*bodyb);
-      }
-    }
-
+    // Transform unique_ptr vector to raw pointer vector
+    std::transform(
+        world.getBodies().begin(), world.getBodies().end(),
+        std::back_inserter(rawPtrVec),
+        [](const std::unique_ptr<RigidBody2D> &ptr) { return ptr.get(); });
+    vs.render(rawPtrVec);
     window.display();
     window.clear(sf::Color::Black);
     frameCounter++;

@@ -1,10 +1,7 @@
 #include "forceGeneration.hpp"
 #include "manifold.hpp"
 #include "rigidBody2D.hpp"
-#include <SFML/Graphics/RenderWindow.hpp>
-#include <SFML/System/Sleep.hpp>
-#include <SFML/System/Time.hpp>
-#include <SFML/System/Vector2.hpp>
+#include <map>
 #include <memory>
 class World {
 public:
@@ -25,10 +22,6 @@ public:
   void findContacts();
   void solveIslands(float deltaTime);
   void setSleepers();
-
-  void setWindow(sf::RenderWindow &window);
-  void showContacts(std::map<ManifoldKey, Manifold> &cd);
-  sf::RenderWindow *window;
 
 private:
   std::vector<std::unique_ptr<RigidBody2D>> bodies;

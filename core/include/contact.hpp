@@ -1,11 +1,11 @@
 #pragma once
-#include <SFML/System/Vector2.hpp>
+#include "linearalg.hpp"
 struct Contact {
   Contact() = default;
-  sf::Vector2f position = {};
-  sf::Vector2f relativeContactPositionA;
-  sf::Vector2f relativeContactPositionB;
-  sf::Vector2f normal; // Always from B to A;
+  la::Vector position = {};
+  la::Vector relativeContactPositionA;
+  la::Vector relativeContactPositionB;
+  la::Vector normal; // Always from B to A;
   float totalNormalImpulse = 0.F;
   float totalTangentImpulse = 0.F;
   float penetrationDepth = 0.F;

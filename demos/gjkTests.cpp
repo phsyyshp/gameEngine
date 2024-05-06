@@ -13,8 +13,8 @@ int main(int argc, char *argv[]) {
   // sf::View view;
   // view.zoom(2.F);
   auto &window = Visual::window;
-  sf::View view(sf::Vector2f(window.getSize().x / 2, window.getSize().y / 2),
-                sf::Vector2f(window.getSize().x, window.getSize().y));
+  sf::View view(la::Vector(window.getSize().x / 2, window.getSize().y / 2),
+                la::Vector(window.getSize().x, window.getSize().y));
 
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
@@ -51,7 +51,7 @@ int main(int argc, char *argv[]) {
 
   while (window.isOpen()) {
     float userAddedOrientation = 0;
-    sf::Vector2f userAdedVelocity = {0.f, 0.f};
+    la::Vector userAdedVelocity = {0.f, 0.f};
     sf::Event event;
 
     // Take inputs;

@@ -1,6 +1,4 @@
 #include "manifold.hpp"
-#include "utils.hpp"
-#include <SFML/System/Vector2.hpp>
 // Constructor now takes pointers instead of references.
 RigidBody2D &Manifold::getBodyA() const { return *bodyA; }
 RigidBody2D &Manifold::getBodyB() const { return *bodyB; }
@@ -53,7 +51,7 @@ void Manifold::preStep(Contact &contact, float deltaTime) {
       std::pow(cross(contact.relativeContactPositionB, contact.normal), 2) *
           bodyB->getInverseInertia() +
       totalInverseMass;
-  sf::Vector2f contactTangent = -perpendicular(contact.normal);
+  la::Vector contactTangent = -perpendicular(contact.normal);
   float deminatorTangent =
       std::pow(cross(contact.relativeContactPositionA, contactTangent), 2) *
           bodyA->getInverseInertia() +
@@ -66,8 +64,8 @@ void Manifold::preStep(Contact &contact, float deltaTime) {
 
   // update the bodies
   if (Collider::accumulateImpulse) {
-    sf::Vector2f impulse = contact.totalNormalImpulse * contact.normal +
-                           contact.totalTangentImpulse * contactTangent;
+    la::Vector impulse = contact.totalNormalImpulse * contact.normal +
+                         contact.totalTangentImpulse * contactTangent;
 
     bodyA->addVelocity(bodyA->getInverseMass() * impulse);
     bodyA->addAngularVelocity(cross(contact.relativeContactPositionA, impulse) *
@@ -84,7 +82,7 @@ float Manifold::solveImpulse(Contact &contact, float deltaTime) {
   contact.relativeContactPositionA = contact.position - bodyA->getPosition();
   contact.relativeContactPositionB = contact.position - bodyB->getPosition();
 
-  sf::Vector2f relativeContactVelocity =
+  la::Vector relativeContactVelocity =
       bodyA->getVelocity() - bodyB->getVelocity() +
       perpendicular(contact.relativeContactPositionA) *
           bodyA->getAngularSpeed() -
@@ -119,7 +117,7 @@ float Manifold::solveImpulse(Contact &contact, float deltaTime) {
                                 bodyA->getAngularSpeed() -
                             perpendicular(contact.relativeContactPositionB) *
                                 bodyB->getAngularSpeed();
-  sf::Vector2f contactTangent = -perpendicular(contact.normal);
+  la::Vector contactTangent = -perpendicular(contact.normal);
   float tangentImpulse =
       -(dot(relativeContactVelocity, contactTangent)) * contact.massTangent;
   if (Collider::accumulateImpulse) {

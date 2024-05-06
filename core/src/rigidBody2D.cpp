@@ -4,30 +4,30 @@
 
 float RigidBody2D::getInverseMass() const { return inverseMass; }
 float RigidBody2D::getInverseInertia() const { return inverseInertia; }
-sf::Vector2f RigidBody2D::getPosition() const { return position; }
-sf::Vector2f RigidBody2D::getVelocity() const { return velocity; }
+la::Vector RigidBody2D::getPosition() const { return position; }
+la::Vector RigidBody2D::getVelocity() const { return velocity; }
 float RigidBody2D::getAngularSpeed() const { return angularVelocity; }
-void RigidBody2D::addForce(const sf::Vector2f &force) { forceAccum += force; }
-void RigidBody2D::addVelocity(const sf::Vector2f &velocity) {
+void RigidBody2D::addForce(const la::Vector &force) { forceAccum += force; }
+void RigidBody2D::addVelocity(const la::Vector &velocity) {
   this->velocity += velocity;
 }
 void RigidBody2D::addAngularVelocity(float rotation) {
   angularVelocity += rotation;
 }
-void RigidBody2D::addForceAtPoint(const sf::Vector2f &force,
-                                  const sf::Vector2f &point) {
+void RigidBody2D::addForceAtPoint(const la::Vector &force,
+                                  const la::Vector &point) {
   forceAccum += force;
   torqueAccum +=
       (point.x - position.x) * force.y - (point.y - position.y) * force.x;
 }
 float RigidBody2D::getOrientation() const { return orientation; }
-void RigidBody2D::addDisplacement(const sf::Vector2f &addDisplacement) {
+void RigidBody2D::addDisplacement(const la::Vector &addDisplacement) {
   position += addDisplacement;
 }
 
-void RigidBody2D::addForceOnBody(const sf::Vector2f &force,
-                                 const sf::Vector2f &localPoint) {
-  sf::Vector2f worldPoint = localPoint + position;
+void RigidBody2D::addForceOnBody(const la::Vector &force,
+                                 const la::Vector &localPoint) {
+  la::Vector worldPoint = localPoint + position;
   addForceAtPoint(force, worldPoint);
   // forceAccum += force;
   // torqueAccum += localPoint.x * force.y - localPoint.y * force.x;
@@ -81,7 +81,7 @@ void RigidBody2D::wakeUp() {
   isAwake_ = true;
 }
 void RigidBody2D::sleep() { isAwake_ = false; }
-sf::Vector2f RigidBody2D::localToGlobal(const sf::Vector2f &localPoint) const {
+la::Vector RigidBody2D::localToGlobal(const la::Vector &localPoint) const {
   return inverseTransformToCordinateSystem(localPoint, position, orientation);
 }
 bool RigidBody2D::isMarked() const { return isMarked_; }

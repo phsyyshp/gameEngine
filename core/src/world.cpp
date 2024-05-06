@@ -1,8 +1,5 @@
 #include "world.hpp"
 #include "rigidBody2D.hpp"
-#include <SFML/System/Sleep.hpp>
-#include <SFML/System/Time.hpp>
-#include <functional>
 #include <memory>
 void World::startFrame() {
   // for (auto &body : bodies) {
@@ -68,10 +65,9 @@ void World::runPhysics(float deltaTime, int subStep) {
     }
     body->integrateVelocities(deltaTime);
   }
-
-  if (isDebug) {
-    showContacts(manifolds);
-  }
+  // if (isDebug) {
+  //   showContacts(manifolds);
+  // }
 }
 void World::registerBody(std::unique_ptr<RigidBody2D> body) {
   bodies.push_back(std::move(body));
@@ -153,25 +149,3 @@ std::vector<Manifold *> World::getAllManifolds(const RigidBody2D &body) {
   }
   return manifoldsOfBody;
 }
-void World::showContacts(std::map<ManifoldKey, Manifold> &manifolds) {
-  for (auto &[key, manifold] : manifolds) {
-
-    for (auto &contact : manifold.getContacts()) {
-      float radius = 2.f;
-
-      sf::CircleShape ax(radius);
-      auto contactPoint = contact.position;
-      ax.setFillColor(sf::Color::Green);
-      ax.setPosition(contactPoint);
-      ax.setOrigin(radius, radius);
-      window->draw(ax);
-      std::array<sf::Vertex, 2> line = {
-          sf::Vertex(contactPoint, sf::Color::Green),
-          sf::Vertex(contactPoint + contact.normal * contact.penetrationDepth,
-                     sf::Color::Green),
-      };
-      window->draw(line.data(), 2, sf::Lines);
-    }
-  }
-}
-void World::setWindow(sf::RenderWindow &window) { this->window = &window; }

@@ -1,25 +1,23 @@
-#include "utils.hpp"
-#include <SFML/Graphics/Vertex.hpp>
-#include <SFML/System/Vector2.hpp>
-#include <limits>
-float cross(const sf::Vector2f &a, const sf::Vector2f &b) {
+#include "linearalg.hpp"
+
+float cross(const la::Vector &a, const la::Vector &b) {
   return a.x * b.y - a.y * b.x;
 }
-float dot(const sf::Vector2f &a, const sf::Vector2f &b) {
+float dot(const la::Vector &a, const la::Vector &b) {
   return a.x * b.x + a.y * b.y;
 }
-float absDot(const sf::Vector2f &a, const sf::Vector2f &b) {
+float absDot(const la::Vector &a, const la::Vector &b) {
   return std::abs(dot(a, b));
 }
 
-sf::Vector2f perpendicular(const sf::Vector2f &a) { return {-a.y, a.x}; }
+la::Vector perpendicular(const la::Vector &a) { return {-a.y, a.x}; }
 
-sf::Vector2f elementViseMultipication(const sf::Vector2f &vectorA,
-                                      const sf::Vector2f &vectorB) {
+la::Vector elementViseMultipication(const la::Vector &vectorA,
+                                    const la::Vector &vectorB) {
   return {vectorA.x * vectorB.x, vectorA.y * vectorB.y};
 }
-float magnitude(const sf::Vector2f &a) { return std::sqrt(dot(a, a)); }
-sf::Vector2f normalise(sf::Vector2f a) {
+float magnitude(const la::Vector &a) { return std::sqrt(dot(a, a)); }
+la::Vector normalise(la::Vector a) {
   float mag = magnitude(a);
   if (mag == 0.F) {
     return {0.F, 0.F};
@@ -28,16 +26,16 @@ sf::Vector2f normalise(sf::Vector2f a) {
   a.y /= mag;
   return a;
 }
-sf::Vector2f rotate(const sf::Vector2f &vectorToRotate, float angle) {
-  sf::Vector2f rotatedVector;
+la::Vector rotate(const la::Vector &vectorToRotate, float angle) {
+  la::Vector rotatedVector;
   rotatedVector.x =
       vectorToRotate.x * std::cos(angle) - vectorToRotate.y * std::sin(angle);
   rotatedVector.y =
       vectorToRotate.x * std::sin(angle) + vectorToRotate.y * std::cos(angle);
   return rotatedVector;
 }
-std::array<sf::Vector2f, 2> getBaseCoordinateSystem(float orientationOfOrigin) {
-  std::array<sf::Vector2f, 2> baseVector;
+std::array<la::Vector, 2> getBaseCoordinateSystem(float orientationOfOrigin) {
+  std::array<la::Vector, 2> baseVector;
   baseVector[0] = {std::cos(orientationOfOrigin),
                    std::sin(orientationOfOrigin)};
   baseVector[1] = {-std::sin(orientationOfOrigin),
@@ -45,15 +43,15 @@ std::array<sf::Vector2f, 2> getBaseCoordinateSystem(float orientationOfOrigin) {
 
   return baseVector;
 }
-sf::Vector2f transformToCordinateSystem(const sf::Vector2f &vectorToTransformed,
-                                        const sf::Vector2f &positionOfOrigin,
-                                        float orientationOfOrigin) {
-  std::array<sf::Vector2f, 2> baseVector;
+la::Vector transformToCordinateSystem(const la::Vector &vectorToTransformed,
+                                      const la::Vector &positionOfOrigin,
+                                      float orientationOfOrigin) {
+  std::array<la::Vector, 2> baseVector;
   baseVector[0] = {std::cos(orientationOfOrigin),
                    std::sin(orientationOfOrigin)};
   baseVector[1] = {-std::sin(orientationOfOrigin),
                    std::cos(orientationOfOrigin)};
-  sf::Vector2f transformedVector;
+  la::Vector transformedVector;
   transformedVector.x =
       dot(vectorToTransformed - positionOfOrigin, baseVector[0]);
   transformedVector.y =
@@ -61,40 +59,30 @@ sf::Vector2f transformToCordinateSystem(const sf::Vector2f &vectorToTransformed,
   return transformedVector;
 }
 
-sf::Vector2f
-inverseTransformToCordinateSystem(const sf::Vector2f &vectorToTransformed,
-                                  const sf::Vector2f &positionOfOrigin,
+la::Vector
+inverseTransformToCordinateSystem(const la::Vector &vectorToTransformed,
+                                  const la::Vector &positionOfOrigin,
                                   float orientationOfOrigin) {
-  std::array<sf::Vector2f, 2> baseVector;
+  std::array<la::Vector, 2> baseVector;
   baseVector[0] = {std::cos(-orientationOfOrigin),
                    std::sin(-orientationOfOrigin)};
   baseVector[1] = {-std::sin(-orientationOfOrigin),
                    std::cos(-orientationOfOrigin)};
-  sf::Vector2f transformedVector;
+  la::Vector transformedVector;
   transformedVector.x =
       dot(vectorToTransformed, baseVector[0]) + positionOfOrigin.x;
   transformedVector.y =
       dot(vectorToTransformed, baseVector[1]) + positionOfOrigin.y;
   return transformedVector;
 }
-sf::Vector2f tripleproduct(const sf::Vector2f &a, const sf::Vector2f &b,
-                           const sf::Vector2f &c) {
+la::Vector tripleproduct(const la::Vector &a, const la::Vector &b,
+                         const la::Vector &c) {
 
   return b * dot(c, a) - a * dot(b, c);
 }
 
-void showPoints(sf::RenderWindow &window, const std::vector<sf::Vector2f> &p,
-                sf::Color color) {
-  for (auto point : p) {
-    sf::CircleShape ax(2.f);
-    ax.setFillColor(color);
-    ax.setPosition(point);
-    ax.setOrigin(2, 2);
-    window.draw(ax);
-  }
-}
-sf::Vector2f computeIntersection(const std::array<sf::Vector2f, 2> &a,
-                                 const std::array<sf::Vector2f, 2> &b) {
+la::Vector computeIntersection(const std::array<la::Vector, 2> &a,
+                               const std::array<la::Vector, 2> &b) {
 
   // Line AB represented as a1x + b1y = c1
   double a1 = a[1].y - a[0].y;
@@ -119,8 +107,8 @@ sf::Vector2f computeIntersection(const std::array<sf::Vector2f, 2> &a,
     return {x, y};
   }
 }
-sf::Vector2f computeIntersection(const std::vector<sf::Vector2f> &a,
-                                 const std::array<sf::Vector2f, 2> &b) {
+la::Vector computeIntersection(const std::vector<la::Vector> &a,
+                               const std::array<la::Vector, 2> &b) {
 
   // Line AB represented as a1x + b1y = c1
   float a1 = a[1].y - a[0].y;
@@ -144,18 +132,4 @@ sf::Vector2f computeIntersection(const std::vector<sf::Vector2f> &a,
     float y = (a1 * c2 - a2 * c1) / determinant;
     return {x, y};
   }
-}
-
-sf::Vector2f plotLine(const std::vector<sf::Vector2f> &points,
-                      sf::RenderWindow &window, sf::Color color) {
-  std::array<sf::Vertex, 2> line = {sf::Vertex(points[0], color),
-                                    sf::Vertex(points[1], color)};
-  window.draw(line.data(), 2, sf::Lines);
-}
-
-sf::Vector2f plotLine(const std ::array<sf::Vector2f, 2> &points,
-                      sf::RenderWindow &window, sf::Color color) {
-  std::array<sf::Vertex, 2> line = {sf::Vertex(points[0], color),
-                                    sf::Vertex(points[1], color)};
-  window.draw(line.data(), 2, sf::Lines);
 }
