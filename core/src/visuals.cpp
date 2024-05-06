@@ -73,3 +73,26 @@ void Visual::render(const std::vector<RigidBody2D *> &bodies) {
     }
   }
 }
+void Visual::showContacts(std::map<ManifoldKey, Manifold> &manifolds) {
+  for (auto &[key, manifold] : manifolds) {
+
+    for (const Contact &contact : manifold.getContacts()) {
+      float radius = 2.f;
+
+      sf::CircleShape ax(radius);
+      sf::Vector2f contactPoint = {contact.position.x, contact.position.y};
+      ax.setFillColor(sf::Color::Green);
+      ax.setPosition(contactPoint);
+      ax.setOrigin(radius, radius);
+      window.draw(ax);
+      std::array<sf::Vertex, 2> line = {
+          sf::Vertex(contactPoint, sf::Color::Green),
+          sf::Vertex(contactPoint +
+                         sf::Vector2f{contact.normal.x, contact.normal.y} *
+                             contact.penetrationDepth,
+                     sf::Color::Green),
+      };
+      window.draw(line.data(), 2, sf::Lines);
+    }
+  }
+}

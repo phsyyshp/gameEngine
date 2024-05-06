@@ -15,7 +15,7 @@ public:
   void registerGravity(Gravity &forceGenerator);
   std::vector<std::unique_ptr<RigidBody2D>> &getBodies();
   size_t getBodySize() const;
-  const std::map<ManifoldKey, Manifold> &getManifolds() const;
+  std::map<ManifoldKey, Manifold> &getManifolds();
 
   std::vector<Manifold *> getAllManifolds(const RigidBody2D &body);
 

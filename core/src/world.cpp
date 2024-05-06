@@ -149,3 +149,5 @@ std::vector<Manifold *> World::getAllManifolds(const RigidBody2D &body) {
   }
   return manifoldsOfBody;
 }
+
+std::map<ManifoldKey, Manifold> &World::getManifolds() { return manifolds; }

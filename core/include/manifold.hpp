@@ -1,3 +1,4 @@
+#pragma once
 #include "collisionHandler.hpp"
 #include "rigidBody2D.hpp"
 struct ManifoldKey {

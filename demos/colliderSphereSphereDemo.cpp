@@ -16,11 +16,10 @@ int main(int argc, char *argv[]) {
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
   float frameDuration;
-  bool isDebug = false;
   if (argc > 1 && std::string(argv[1]) == "-d") {
-    isDebug = true;
+    vs.isDebug = true;
   }
-  World world(200, isDebug);
+  World world(200, true);
 
   float timeScale = 1;
   float lengthScale = 10001.f;
@@ -79,6 +78,10 @@ int main(int argc, char *argv[]) {
         std::back_inserter(rawPtrVec),
         [](const std::unique_ptr<RigidBody2D> &ptr) { return ptr.get(); });
     vs.render(rawPtrVec);
+    if (vs.isDebug) {
+      vs.showContacts(world.getManifolds());
+    }
+
     window.display();
     window.clear(sf::Color::Black);
   }

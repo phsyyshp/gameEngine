@@ -1,5 +1,6 @@
 #pragma once
 #include "linearalg.hpp"
+#include "manifold.hpp"
 #include "rigidBody2D.hpp"
 #include "shapes.hpp"
 #include <SFML/Graphics.hpp>
@@ -26,4 +27,5 @@ public:
   void showPoints(sf::RenderWindow &window, const std::vector<la::Vector> &p,
                   sf::Color color = sf::Color::Yellow);
   void render(const std::vector<RigidBody2D *> &bodies);
+  void showContacts(std::map<ManifoldKey, Manifold> &manifolds);
 };
