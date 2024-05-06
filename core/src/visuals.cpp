@@ -18,19 +18,21 @@ void Visual::showPoints(sf::RenderWindow &window,
   }
 }
 
-// la::Vector Visual::plotLine(const std::vector<la::Vector> &points,
-//                             sf::RenderWindow &window, sf::Color color) {
-//   std::array<sf::Vertex, 2> line = {sf::Vertex(points[0], color),
-//                                     sf::Vertex(points[1], color)};
-//   window.draw(line.data(), 2, sf::Lines);
-// }
+la::Vector Visual::plotLine(const std::vector<la::Vector> &points,
+                            sf::RenderWindow &window, sf::Color color) {
+  std::array<sf::Vertex, 2> line = {
+      sf::Vertex({points[0].x, points[0].y}, color),
+      sf::Vertex({points[1].x, points[1].y}, color)};
+  window.draw(line.data(), 2, sf::Lines);
+}
 
-// la::Vector Visual::plotLine(const std ::array<la::Vector, 2> &points,
-//                             sf::RenderWindow &window, sf::Color color) {
-//   std::array<sf::Vertex, 2> line = {sf::Vertex(points[0], color),
-//                                     sf::Vertex(points[1], color)};
-//   window.draw(line.data(), 2, sf::Lines);
-// }
+la::Vector Visual::plotLine(const std ::array<la::Vector, 2> &points,
+                            sf::RenderWindow &window, sf::Color color) {
+  std::array<sf::Vertex, 2> line = {
+      sf::Vertex({points[0].x, points[0].y}, color),
+      sf::Vertex({points[1].x, points[1].y}, color)};
+  window.draw(line.data(), 2, sf::Lines);
+}
 void Visual::render(const std::vector<RigidBody2D *> &bodies) {
 
   for (auto &body : bodies) {
