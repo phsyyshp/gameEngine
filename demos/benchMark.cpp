@@ -49,10 +49,10 @@ int main(int argc, char *argv[]) {
   //     // circle->addAngularVelocity(50.5F);
   //     world.registerBody(std::move(circle));
   //   }
-  for (int i = 0; i < 10; i++) {
-    sf::Vector2i mousePos = {200, 200};
-    std::unique_ptr<Box> box = std::make_unique<Box>(
-        mousePos.x + 0 * 70 * i, mousePos.y + 25 * i, 70, 25);
+  for (int i = 0; i < 7; i++) {
+    sf::Vector2i mousePos = {200, 550};
+    std::unique_ptr<Box> box =
+        std::make_unique<Box>(mousePos.x, mousePos.y - 28 * i, 70, 25);
     float density = 0.001f;
     float mass = density * 200 * 25;
     box->setInverseMass(1 / mass);
@@ -78,6 +78,7 @@ int main(int argc, char *argv[]) {
     vs.render(rawPtrVec);
     if (vs.isDebug) {
       vs.showContacts(world.getManifolds());
+      //   vs.showSettings();
     }
     window.display();
     window.clear(sf::Color::Black);

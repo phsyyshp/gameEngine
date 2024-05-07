@@ -96,3 +96,39 @@ void Visual::showContacts(std::map<ManifoldKey, Manifold> &manifolds) {
     }
   }
 }
+
+void Visual::showSettings() {
+  sf::Font font;
+  if (!font.loadFromFile("arial.ttf")) {
+    // handle font loading error
+  }
+
+  sf::Text sleepText;
+  sleepText.setFont(font);
+  sleepText.setCharacterSize(16);
+  sleepText.setFillColor(sf::Color::White);
+  sleepText.setPosition(window.getSize().x - 150, 10);
+  sleepText.setString("Sleep: " +
+                      std::string(Collider::applySleepScheme ? "On" : "Off"));
+
+  sf::Text warmStartText;
+  warmStartText.setFont(font);
+  warmStartText.setCharacterSize(16);
+  warmStartText.setFillColor(sf::Color::White);
+  warmStartText.setPosition(window.getSize().x - 150, 30);
+  warmStartText.setString("Warm Start: " +
+                          std::string(Collider::warmStart ? "On" : "Off"));
+
+  sf::Text accumImpulseText;
+  accumImpulseText.setFont(font);
+  accumImpulseText.setCharacterSize(16);
+  accumImpulseText.setFillColor(sf::Color::White);
+  accumImpulseText.setPosition(window.getSize().x - 150, 50);
+  accumImpulseText.setString(
+      "Accumulated Impulse: " +
+      std::string(Collider::accumulateImpulse ? "On" : "Off"));
+
+  window.draw(sleepText);
+  window.draw(warmStartText);
+  window.draw(accumImpulseText);
+}

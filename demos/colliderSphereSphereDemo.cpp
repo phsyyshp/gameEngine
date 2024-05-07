@@ -48,8 +48,8 @@ int main(int argc, char *argv[]) {
         if (event.mouseButton.button == sf::Mouse::Left) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
           std::unique_ptr<Circle> circle =
-              std::make_unique<Circle>(mousePos.x, mousePos.y, 30);
-          float density = 0.1f;
+              std::make_unique<Circle>(mousePos.x, mousePos.y, 10);
+          float density = 0.001f;
           float mass = density * 3.14159f * 10 * 10;
           circle->setInverseMass(1 / mass);
           // circle->addAngularVelocity(50.5F);
@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
     vs.render(rawPtrVec);
     if (vs.isDebug) {
       vs.showContacts(world.getManifolds());
+      // vs.showSettings();
     }
 
     window.display();

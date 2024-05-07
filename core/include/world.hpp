@@ -1,6 +1,7 @@
 #include "forceGeneration.hpp"
 #include "manifold.hpp"
 #include "rigidBody2D.hpp"
+#include <iostream>
 #include <map>
 #include <memory>
 class World {

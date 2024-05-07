@@ -8,13 +8,10 @@ void World::startFrame() {
 }
 void World::runPhysics(float deltaTime, int subStep) {
 
-  // setSleepers();
   findContacts();
   if (Collider::applySleepScheme) {
     solveIslands(deltaTime);
   }
-
-  // FIX IT: implement a sleep system
   for (auto &body : bodies) {
     if (!body->isAwake()) {
       continue;
@@ -34,6 +31,9 @@ void World::runPhysics(float deltaTime, int subStep) {
   }
   float totalChange = 0;
   float lastChange = 0;
+
+  float changeRatio = 0;
+  float maxChangeRatio = 0;
   int i = 0;
   do {
     // FIX IT: The break condition is not proper enough make it more roboust
@@ -42,10 +42,15 @@ void World::runPhysics(float deltaTime, int subStep) {
         continue;
       }
       for (auto &contact : manifold.getContacts()) {
-        float lagrangianMultiplier = manifold.solveImpulse(contact, deltaTime);
+        auto lagrangianMultiplier = manifold.solveImpulse(contact, deltaTime);
         lastChange = lagrangianMultiplier;
+
         totalChange = contact.totalNormalImpulse;
-        // sf::sleep(sf::seconds(0.1F));
+
+        // changeRatio = std::abs(lastChange) / (totalChange);
+        // if (changeRatio > maxChangeRatio) {
+        //   maxChangeRatio = changeRatio;
+        // }
       }
     }
     // FIX IT: this is just a hack fix it properly.
@@ -54,20 +59,17 @@ void World::runPhysics(float deltaTime, int subStep) {
     }
     i++;
     // std::cout << "total it" << i << "\n";
+    // } while (maxChangeRatio > 0.001F && i < 1000);
   } while (std::abs(lastChange) / (totalChange) > 0.001F && i < 1000);
 
-  // std::cout << "Total change is: " << totalChange
-  //           << " last change is: " << lastChange << " iteration: " << i <<
-  //           "\n";
+  std::cout << "Total change is: " << totalChange
+            << " last change is: " << lastChange << " iteration: " << i << "\n";
   for (auto &body : bodies) {
     if (!body->isAwake()) {
       continue;
     }
     body->integrateVelocities(deltaTime);
   }
-  // if (isDebug) {
-  //   showContacts(manifolds);
-  // }
 }
 void World::registerBody(std::unique_ptr<RigidBody2D> body) {
   bodies.push_back(std::move(body));
@@ -84,16 +86,16 @@ void World::findContacts() {
           bodies[j]->getInverseMass() == 0) {
         continue;
       }
+      // if ((!bodies[i]->isAwake()) && (!bodies[j]->isAwake())) {
+      //   continue;
+      // }
       Manifold manifold(bodies[i].get(), bodies[j].get());
       ManifoldKey manifoldKey(bodies[i].get(), bodies[j].get());
-      // std::cout << "manifold size is: " << manifold.size() << std::endl;
       if (manifold.size() > 0) {
         auto manIt = manifolds.find(manifoldKey);
         if (manIt == manifolds.end()) {
-          // std::cout << "new manifold" << std::endl;
           manifolds.insert(std::make_pair(manifoldKey, manifold));
         } else {
-          // std::cout << "existing manifold" << std::endl;
           manIt->second.update(manifold.getContacts());
         }
       } else {
