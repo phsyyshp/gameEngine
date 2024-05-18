@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
   auto &window = vs.window;
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
+  // deltaTime = 1.F / 60.F;
   float frameDuration;
   if (argc > 1 && std::string(argv[1]) == "-d") {
     vs.isDebug = true;
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
 
   float timeScale = 1;
   float lengthScale = 10001.f;
+  // lengthScale = 500.F;
   // lengthScale = 0.F;
   std::unique_ptr<Box> mbox = std::make_unique<Box>(400, 605, 800, 100);
   std::unique_ptr<Box> mboxLeft = std::make_unique<Box>(0, 250, 100, 600);
@@ -48,7 +50,7 @@ int main(int argc, char *argv[]) {
         if (event.mouseButton.button == sf::Mouse::Left) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
           std::unique_ptr<Circle> circle =
-              std::make_unique<Circle>(mousePos.x, mousePos.y, 10);
+              std::make_unique<Circle>(mousePos.x, mousePos.y, 30);
           float density = 0.001f;
           float mass = density * 3.14159f * 10 * 10;
           circle->setInverseMass(1 / mass);

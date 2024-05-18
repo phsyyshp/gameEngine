@@ -49,7 +49,7 @@ int main(int argc, char *argv[]) {
   //     // circle->addAngularVelocity(50.5F);
   //     world.registerBody(std::move(circle));
   //   }
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 5; i++) {
     sf::Vector2i mousePos = {200, 550};
     std::unique_ptr<Box> box =
         std::make_unique<Box>(mousePos.x, mousePos.y - 28 * i, 70, 25);

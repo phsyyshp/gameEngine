@@ -34,8 +34,11 @@ void World::runPhysics(float deltaTime, int subStep) {
 
   float changeRatio = 0;
   float maxChangeRatio = 0;
+  float maxChange = 0;
+  float maxTotalChange = 0;
   int i = 0;
   do {
+    maxChangeRatio = 0;
     // FIX IT: The break condition is not proper enough make it more roboust
     for (auto &[key, manifold] : manifolds) {
       if (!manifold.getBodyA().isAwake() && !manifold.getBodyB().isAwake()) {
@@ -43,27 +46,38 @@ void World::runPhysics(float deltaTime, int subStep) {
       }
       for (auto &contact : manifold.getContacts()) {
         auto lagrangianMultiplier = manifold.solveImpulse(contact, deltaTime);
-        lastChange = lagrangianMultiplier;
 
+        lastChange = lagrangianMultiplier;
         totalChange = contact.totalNormalImpulse;
 
         // changeRatio = std::abs(lastChange) / (totalChange);
-        // if (changeRatio > maxChangeRatio) {
-        //   maxChangeRatio = changeRatio;
+        // How you treat totalChange==0 case gravely impacts the stability.
+        changeRatio =
+            (totalChange == 0) ? 0 : std::abs(lastChange) / (totalChange);
+        // if (manifold.getBodyA().type() == RigidBody2DType::CIRCLE ||
+        //     (manifold.getBodyB().type() == RigidBody2DType::CIRCLE)) {
+        //   changeRatio /= 100;
         // }
+        if (changeRatio > maxChangeRatio) {
+          maxChangeRatio = changeRatio;
+          maxChange = lastChange;
+          maxTotalChange = totalChange;
+        }
       }
     }
-    // FIX IT: this is just a hack fix it properly.
-    if (totalChange == 0) {
-      break;
-    }
+    // std::cout << "Max Total change is: " << maxTotalChange
+    //           << " last change is: " << lastChange << " iteration: " << i
+    //           << " MAX change ratio is: " << maxChangeRatio
+    //           << " Max change: " << maxChange << "\n";
     i++;
     // std::cout << "total it" << i << "\n";
-    // } while (maxChangeRatio > 0.001F && i < 1000);
-  } while (std::abs(lastChange) / (totalChange) > 0.001F && i < 1000);
+  } while (maxChangeRatio > 0.001F && i < 10);
+  // } while (std::abs(lastChange) / (totalChange) > 0.001F && i < 1000);
 
-  std::cout << "Total change is: " << totalChange
-            << " last change is: " << lastChange << " iteration: " << i << "\n";
+  std::cout << "Max Total change is: " << totalChange
+            << " last change is: " << lastChange << " iteration: " << i
+            << " MAX change ratio is: " << maxChangeRatio
+            << " Max change: " << maxChange << "\n";
   for (auto &body : bodies) {
     if (!body->isAwake()) {
       continue;
