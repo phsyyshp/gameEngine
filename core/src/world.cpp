@@ -50,14 +50,9 @@ void World::runPhysics(float deltaTime, int subStep) {
         lastChange = lagrangianMultiplier;
         totalChange = contact.totalNormalImpulse;
 
-        // changeRatio = std::abs(lastChange) / (totalChange);
         // How you treat totalChange==0 case gravely impacts the stability.
         changeRatio =
             (totalChange == 0) ? 0 : std::abs(lastChange) / (totalChange);
-        // if (manifold.getBodyA().type() == RigidBody2DType::CIRCLE ||
-        //     (manifold.getBodyB().type() == RigidBody2DType::CIRCLE)) {
-        //   changeRatio /= 100;
-        // }
         if (changeRatio > maxChangeRatio) {
           maxChangeRatio = changeRatio;
           maxChange = lastChange;
@@ -71,13 +66,14 @@ void World::runPhysics(float deltaTime, int subStep) {
     //           << " Max change: " << maxChange << "\n";
     i++;
     // std::cout << "total it" << i << "\n";
-  } while (maxChangeRatio > 0.001F && i < 10);
+    // } while (i < 10);
+  } while (maxChangeRatio > 0.001F && i < 1000);
   // } while (std::abs(lastChange) / (totalChange) > 0.001F && i < 1000);
 
-  std::cout << "Max Total change is: " << totalChange
-            << " last change is: " << lastChange << " iteration: " << i
-            << " MAX change ratio is: " << maxChangeRatio
-            << " Max change: " << maxChange << "\n";
+  // std::cout << "Max Total change is: " << totalChange
+  //           << " last change is: " << lastChange << " iteration: " << i
+  //           << " MAX change ratio is: " << maxChangeRatio
+  //           << " Max change: " << maxChange << "\n";
   for (auto &body : bodies) {
     if (!body->isAwake()) {
       continue;
