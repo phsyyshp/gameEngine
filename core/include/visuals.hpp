@@ -1,4 +1,5 @@
 #pragma once
+#include "collisionHandler.hpp"
 #include "linearalg.hpp"
 #include "manifold.hpp"
 #include "rigidBody2D.hpp"
@@ -28,4 +29,5 @@ public:
                   sf::Color color = sf::Color::Yellow);
   void render(const std::vector<RigidBody2D *> &bodies);
   void showContacts(std::map<ManifoldKey, Manifold> &manifolds);
+  void showSettings();
 };

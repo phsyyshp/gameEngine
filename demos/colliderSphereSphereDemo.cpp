@@ -15,6 +15,7 @@ int main(int argc, char *argv[]) {
   auto &window = vs.window;
   // window.setFramerateLimit(60);
   float deltaTime = 0.001f;
+  // deltaTime = 1.F / 60.F;
   float frameDuration;
   if (argc > 1 && std::string(argv[1]) == "-d") {
     vs.isDebug = true;
@@ -23,6 +24,7 @@ int main(int argc, char *argv[]) {
 
   float timeScale = 1;
   float lengthScale = 10001.f;
+  // lengthScale = 500.F;
   // lengthScale = 0.F;
   std::unique_ptr<Box> mbox = std::make_unique<Box>(400, 605, 800, 100);
   std::unique_ptr<Box> mboxLeft = std::make_unique<Box>(0, 250, 100, 600);
@@ -36,6 +38,19 @@ int main(int argc, char *argv[]) {
   world.registerBody(std::move(mboxRight));
   world.registerGravity(gravity);
 
+  for (int i = 0; i < 12; i++) {
+
+    for (int j = 0; j < 12 - i; j++) {
+      sf::Vector2i mousePos = {450, 550};
+      std::unique_ptr<Box> box = std::make_unique<Box>(
+          mousePos.x - 34 * j - 16 * i, mousePos.y - 34 * i, 30, 30);
+      float density = 0.001f;
+      float mass = density * 30 * 30;
+      mass = 10;
+      box->setInverseMass(1 / mass);
+      world.registerBody(std::move(box));
+    }
+  }
   while (window.isOpen()) {
     sf::Event event;
 
@@ -49,7 +64,7 @@ int main(int argc, char *argv[]) {
           sf::Vector2i mousePos = sf::Mouse::getPosition(window);
           std::unique_ptr<Circle> circle =
               std::make_unique<Circle>(mousePos.x, mousePos.y, 30);
-          float density = 0.1f;
+          float density = 0.001f;
           float mass = density * 3.14159f * 10 * 10;
           circle->setInverseMass(1 / mass);
           // circle->addAngularVelocity(50.5F);
@@ -80,6 +95,7 @@ int main(int argc, char *argv[]) {
     vs.render(rawPtrVec);
     if (vs.isDebug) {
       vs.showContacts(world.getManifolds());
+      // vs.showSettings();
     }
 
     window.display();
