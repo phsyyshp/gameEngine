@@ -58,18 +58,3 @@ target_link_libraries(benchMark PRIVATE sfml-graphics sfml-window sfml-system)
 target_compile_features(benchMark PRIVATE cxx_std_20)
 target_include_directories(benchMark PRIVATE core/include)
 
-# Define sources for gjkTests
-# set(gjkTest_SOURCES
-#     demos/gjkTests.cpp
-#     core/src/collisionHandler.cpp
-#     core/src/rigidBody2D.cpp
-#     core/src/forceGeneration.cpp
-#     core/src/visuals.cpp
-#     core/src/manifold.cpp
-#     core/src/world.cpp)
-
-# add_executable(gjkTests ${gjkTest_SOURCES})
-# target_link_libraries(gjkTests PRIVATE sfml-graphics sfml-window sfml-system)
-# target_compile_features(gjkTests PRIVATE cxx_std_20)
-# target_include_directories(gjkTests PRIVATE core/include)
-

@@ -67,7 +67,7 @@ void World::runPhysics(float deltaTime, int subStep) {
     i++;
     // std::cout << "total it" << i << "\n";
     // } while (i < 10);
-  } while (maxChangeRatio > 0.001F && i < 1000);
+  } while (maxChangeRatio > 0.001F && i < 50);
   // } while (std::abs(lastChange) / (totalChange) > 0.001F && i < 1000);
 
   // std::cout << "Max Total change is: " << totalChange
